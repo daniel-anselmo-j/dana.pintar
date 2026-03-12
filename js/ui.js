@@ -97,6 +97,7 @@ async function confirmTopup() {
   });
 
   window.currentProfile.balance = newBalance;
+  cacheInvalidate('profile:');
   closeModal('modalTopup');
   btn.textContent = 'Top Up Sekarang'; btn.disabled = false;
   toast('💳 Top Up Rp ' + fmtInt(amt) + ' berhasil!', 'success');

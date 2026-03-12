@@ -1,5 +1,6 @@
 // ═══════════════════════════════════════════════════════════
 //  js/portfolio.js — Portfolio View
+//  refreshLivePortfolioDOM = NO fetch, pakai _holdingsCache
 // ═══════════════════════════════════════════════════════════
 
 async function renderPortfolio() {
@@ -7,6 +8,7 @@ async function renderPortfolio() {
   if (!el) return;
   showLoading('viewPortfolio');
 
+  // Fetch fresh dari Supabase (hanya saat halaman dibuka)
   const uid = window.currentUser.id;
   const { data: holdings, error } = await sb
     .from('holdings')
@@ -14,15 +16,21 @@ async function renderPortfolio() {
     .eq('user_id', uid)
     .gt('units', 0);
 
-  if (error) { el.innerHTML = '<p class="text-muted">Gagal memuat portofolio.</p>'; return; }
+  if (error) {
+    el.innerHTML = '<p class="text-muted" style="padding:20px;">Gagal memuat portofolio.</p>';
+    return;
+  }
+
+  // Simpan ke cache memory
+  window._holdingsCache = holdings || [];
 
   const { total, modal, profit, pct } = calcPortfolioStats(holdings || []);
 
   el.innerHTML = `
     <div class="grid-3 mb-24 stagger">
-      ${statCard('Nilai Saat Ini', 'Rp ' + fmtInt(total), pct >= 0 ? '+' + pct.toFixed(2) + '%' : pct.toFixed(2) + '%', pct >= 0 ? 'up' : 'down', '💰')}
-      ${statCard('Modal Diinvestasikan', 'Rp ' + fmtInt(modal), 'Total beli', 'neutral', '📥')}
-      ${statCard('Keuntungan / Rugi', (profit >= 0 ? '+' : '') + 'Rp ' + fmtInt(Math.abs(profit)), (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%', pct >= 0 ? 'up' : 'down', profit >= 0 ? '📈' : '📉')}
+      ${statCard('Nilai Saat Ini', 'Rp ' + fmtInt(total), (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%', pct >= 0 ? 'up' : 'down', '💰')}
+      ${statCard('Modal Diinvestasikan', 'Rp ' + fmtInt(modal), 'Total beli', 'neutral', '&#x1F4E5;')}
+      ${statCard('Keuntungan / Rugi', (profit >= 0 ? '+' : '') + 'Rp ' + fmtInt(Math.abs(profit)), (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%', pct >= 0 ? 'up' : 'down', profit >= 0 ? '&#x1F4C8;' : '&#x1F4C9;')}
     </div>
     <div class="card">
       <div class="card-title">Rincian Kepemilikan</div>
@@ -31,23 +39,20 @@ async function renderPortfolio() {
 
   const listEl = document.getElementById('holdingsList');
   if (!holdings || !holdings.length) {
-    listEl.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><p>Belum ada investasi. Mulai dari menu Produk Investasi!</p></div>`;
+    listEl.innerHTML = '<div class="empty-state"><div class="empty-icon">&#x1F4ED;</div><p>Belum ada investasi. Mulai dari menu Produk Investasi!</p></div>';
     return;
   }
-
   listEl.innerHTML = holdings.map(h => holdingItemHTML(h)).join('');
 }
 
 function holdingItemHTML(h) {
-  const f     = h.funds;
-  if (!f) return '';
-  const nav   = getCurrentNav(f.id);
-  const curr  = parseFloat(h.units) * nav;
-  const inv   = parseFloat(h.invested);
-  const prof  = curr - inv;
-  const pct   = inv > 0 ? (prof / inv * 100) : 0;
-  const typeLabel = TYPE_LABEL[f.type] || f.type;
-  const typeCls   = f.type === 'pasar-uang' ? 'tag-blue' : f.type === 'obligasi' ? 'tag-gold' : 'tag-green';
+  const f    = h.funds; if (!f) return '';
+  const nav  = getCurrentNav(f.id);
+  const curr = parseFloat(h.units) * nav;
+  const inv  = parseFloat(h.invested);
+  const prof = curr - inv;
+  const pct  = inv > 0 ? (prof / inv * 100) : 0;
+  const typeCls = f.type === 'pasar-uang' ? 'tag-blue' : f.type === 'obligasi' ? 'tag-gold' : 'tag-green';
 
   return `
   <div class="portfolio-item">
@@ -55,7 +60,7 @@ function holdingItemHTML(h) {
     <div class="pi-info">
       <div class="pi-name">${f.name}</div>
       <div class="pi-sub flex flex-center gap-8 mt-4">
-        <span class="tag ${typeCls}">${typeLabel}</span>
+        <span class="tag ${typeCls}">${TYPE_LABEL[f.type] || f.type}</span>
         <span>${f.manager}</span>
         <span>· ${parseFloat(h.units).toFixed(4)} unit</span>
       </div>
@@ -75,8 +80,8 @@ function holdingItemHTML(h) {
 function calcPortfolioStats(holdings) {
   let total = 0, modal = 0;
   (holdings || []).forEach(h => {
-    const nav  = getCurrentNav(h.fund_id || h.funds?.id);
-    total += parseFloat(h.units) * nav;
+    const fid = h.fund_id || h.funds?.id;
+    total += parseFloat(h.units) * getCurrentNav(fid);
     modal += parseFloat(h.invested);
   });
   const profit = total - modal;
@@ -84,12 +89,13 @@ function calcPortfolioStats(holdings) {
   return { total, modal, profit, pct };
 }
 
-async function refreshLivePortfolio() {
-  if (!window.currentUser) return;
-  const { data: holdings } = await sb
-    .from('holdings').select('*, funds(*)').eq('user_id', window.currentUser.id).gt('units', 0);
-
-  (holdings || []).forEach(h => {
+/**
+ * Refresh DOM portfolio values — pakai _holdingsCache (NO Supabase fetch).
+ * Dipanggil dari simulasi NAV setiap 3 detik.
+ */
+function refreshLivePortfolioDOM() {
+  const holdings = window._holdingsCache || [];
+  holdings.forEach(h => {
     const f   = h.funds; if (!f) return;
     const nav = getCurrentNav(f.id);
     const curr = parseFloat(h.units) * nav;
@@ -98,22 +104,23 @@ async function refreshLivePortfolio() {
 
     const valEl = document.getElementById('pi-val-' + f.id);
     if (valEl) valEl.textContent = 'Rp ' + fmtInt(curr);
+
     const retEl = document.getElementById('pi-ret-' + f.id);
     if (retEl) {
-      retEl.textContent = (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%';
-      retEl.className = 'pi-return ' + (pct >= 0 ? 'text-green' : 'text-red');
+      retEl.textContent  = (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%';
+      retEl.className    = 'pi-return ' + (pct >= 0 ? 'text-green' : 'text-red');
     }
   });
 
-  // Dashboard stats
-  const { total, modal, profit, pct } = calcPortfolioStats(holdings || []);
+  // Update dashboard stats jika visible
+  const { total, profit } = calcPortfolioStats(holdings);
   const ptEl = document.getElementById('dash-porto-total');
   if (ptEl) ptEl.textContent = 'Rp ' + fmtInt(total);
   const ppEl = document.getElementById('dash-profit');
   if (ppEl) ppEl.textContent = (profit >= 0 ? '+' : '') + 'Rp ' + fmtInt(Math.abs(profit));
 }
 
-// ── stat card helper ─────────────────────────────────────
+// ── Stat card helper ─────────────────────────────────────
 function statCard(label, value, change, changeDir, icon) {
   return `
   <div class="stat-card">

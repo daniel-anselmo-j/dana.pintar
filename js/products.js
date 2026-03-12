@@ -126,10 +126,13 @@ async function confirmBuy() {
   });
 
   window.currentProfile.balance = newBalance;
+  cacheInvalidate('profile:');
   closeModal('modalBuy');
   btn.textContent = 'Konfirmasi Pembelian'; btn.disabled = false;
   toast('✅ Berhasil membeli ' + units.toFixed(4) + ' unit ' + f.name, 'success');
   refreshBalanceUI(newBalance);
+  // Refresh holdings cache (1 request, setelah transaksi)
+  refreshHoldingsCache();
 }
 
 // ── Open Sell Modal ──────────────────────────────────────
@@ -209,9 +212,12 @@ async function confirmSell() {
   });
 
   window.currentProfile.balance = newBalance;
+  cacheInvalidate('profile:');
   closeModal('modalSell');
   btn.textContent = 'Konfirmasi Penjualan'; btn.disabled = false;
   toast('💸 Penjualan berhasil! Rp ' + fmtInt(proceeds) + ' masuk saldo.', 'success');
   refreshBalanceUI(newBalance);
+  // Refresh holdings cache + re-render portfolio
+  await refreshHoldingsCache();
   renderPortfolio();
 }

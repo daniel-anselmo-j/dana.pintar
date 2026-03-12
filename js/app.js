@@ -10,10 +10,17 @@ window._allTxs        = [];
 
 // ── Bootstrap ────────────────────────────────────────────
 (async function init() {
-  // Load Supabase
-  sb = await loadSupabase();
+  // SDK sudah dimuat via <script> di index.html
+  // createClient langsung tanpa dynamic import
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
+    auth: { persistSession: true, autoRefreshToken: true },
+    global: {
+      // Tambah retry logic bawaan
+      fetch: (...args) => fetch(...args),
+    }
+  });
 
-  // Check existing session
+  // Check existing session (1 request saat load)
   const { data: { session } } = await sb.auth.getSession();
   if (session?.user) {
     await enterApp(session.user);
@@ -21,9 +28,6 @@ window._allTxs        = [];
 
   // Listen for auth changes
   sb.auth.onAuthStateChange(async (event, session) => {
-    if (event === 'SIGNED_IN' && session?.user) {
-      // Already handled by doLogin / enterApp
-    }
     if (event === 'SIGNED_OUT') {
       window.currentUser    = null;
       window.currentProfile = null;
@@ -35,22 +39,27 @@ window._allTxs        = [];
 async function enterApp(user) {
   window.currentUser = user;
 
-  // Fetch profile
-  const { data: profile, error: pErr } = await sb
-    .from('profiles').select('*').eq('id', user.id).single();
+  // Fetch profile + funds in parallel (2 requests total, cached)
+  const [profileRes, fundsRes] = await Promise.all([
+    sb.from('profiles').select('*').eq('id', user.id).single(),
+    sb.from('funds').select('*').eq('is_active', true).order('type'),
+  ]);
 
-  if (pErr || !profile) {
-    // Profile not yet created (trigger might lag), retry once
-    await new Promise(r => setTimeout(r, 800));
+  // Handle profile
+  if (profileRes.error || !profileRes.data) {
+    await new Promise(r => setTimeout(r, 1000));
     const { data: p2 } = await sb.from('profiles').select('*').eq('id', user.id).single();
     window.currentProfile = p2 || { balance: 0, full_name: user.email, role: 'investor' };
   } else {
-    window.currentProfile = profile;
+    window.currentProfile = profileRes.data;
   }
 
-  // Fetch all funds
-  const { data: funds } = await sb.from('funds').select('*').eq('is_active', true).order('type');
-  window.allFunds = funds || [];
+  // Cache profile
+  cacheSet('profile:' + user.id, window.currentProfile, 60000);
+
+  // Handle funds
+  window.allFunds = fundsRes.data || [];
+  cacheSet('funds:all', window.allFunds, 300000); // cache 5 menit
 
   // Seed NAV cache
   window.allFunds.forEach(f => {
@@ -61,19 +70,12 @@ async function enterApp(user) {
   document.getElementById('page-auth').classList.remove('active');
   document.getElementById('page-app').classList.add('active');
 
-  // Update sidebar
   updateSidebarUI(window.currentProfile);
-
-  // Render product lists (they're static, render once)
   ['pasar-uang', 'obligasi', 'saham'].forEach(type => renderProducts(type));
-
-  // Start live NAV simulation
+  // Pre-load holdings cache (1 request saat login)
+  await refreshHoldingsCache();
   startNavSimulation(window.allFunds);
-
-  // Build ticker
   buildTickerHTML(window.allFunds);
-
-  // Load dashboard
   switchView('dashboard');
 }
 
