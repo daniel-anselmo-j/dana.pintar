@@ -1,0 +1,1962 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InvestaID — Platform Reksadana Digital</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080c18;
+  --bg2: #0c1220;
+  --bg3: #101828;
+  --card: #131d30;
+  --card2: #192540;
+  --border: #1e2e50;
+  --border2: #2a3f6e;
+  --gold: #c9a84c;
+  --gold2: #e8c97a;
+  --gold3: #f5dfaa;
+  --green: #2dd4a4;
+  --green2: #1aad84;
+  --red: #ff6b8a;
+  --red2: #e04060;
+  --blue: #4a9eff;
+  --purple: #9b8cff;
+  --text: #dce8ff;
+  --text2: #7a8dbb;
+  --text3: #4a5a80;
+  --shadow: 0 12px 40px rgba(0,0,0,0.5);
+  --glow-gold: 0 0 40px rgba(201,168,76,0.12);
+  --glow-green: 0 0 20px rgba(45,212,164,0.15);
+  --radius: 16px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+.page{display:none;min-height:100vh;flex-direction:column;}
+.page.active{display:flex;}
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar{width:6px;}
+::-webkit-scrollbar-track{background:var(--bg2);}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+
+/* ═══════════════════════════════════════════
+   AUTH PAGE
+═══════════════════════════════════════════ */
+#page-auth{
+  background: 
+    radial-gradient(ellipse 80% 60% at 15% 50%, rgba(26,37,70,0.8) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 85% 20%, rgba(20,16,50,0.6) 0%, transparent 50%),
+    var(--bg);
+  align-items:center;justify-content:center;position:relative;overflow:hidden;
+}
+#page-auth::before{
+  content:'';position:absolute;inset:0;
+  background-image:linear-gradient(rgba(201,168,76,0.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(201,168,76,0.025) 1px,transparent 1px);
+  background-size:60px 60px;
+  animation: gridMove 20s linear infinite;
+}
+@keyframes gridMove{0%{background-position:0 0;}100%{background-position:60px 60px;}}
+.auth-orb{
+  position:absolute;width:600px;height:600px;border-radius:50%;
+  background:radial-gradient(circle,rgba(201,168,76,0.06) 0%,transparent 70%);
+  top:50%;left:50%;transform:translate(-50%,-50%);
+  animation:pulse 4s ease-in-out infinite;pointer-events:none;
+}
+@keyframes pulse{0%,100%{opacity:0.6;transform:translate(-50%,-50%) scale(1);}50%{opacity:1;transform:translate(-50%,-50%) scale(1.1);}}
+
+.auth-wrap{position:relative;z-index:1;width:100%;max-width:440px;padding:20px;}
+.auth-brand{text-align:center;margin-bottom:36px;}
+.brand-icon{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:56px;height:56px;border-radius:16px;font-size:24px;margin-bottom:12px;
+  background:linear-gradient(135deg,var(--gold) 0%,var(--gold2) 100%);
+  box-shadow:0 0 30px rgba(201,168,76,0.35);
+}
+.auth-brand h1{
+  font-family:'Playfair Display',serif;font-size:34px;font-weight:700;
+  background:linear-gradient(135deg,var(--gold2),var(--gold3));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  letter-spacing:-1px;
+}
+.auth-brand p{color:var(--text2);font-size:13px;margin-top:4px;}
+
+.auth-card{
+  background:var(--card);border:1px solid var(--border);border-radius:24px;
+  padding:36px;box-shadow:var(--shadow),var(--glow-gold);
+}
+.auth-tabs{
+  display:flex;background:var(--bg3);border-radius:12px;padding:4px;
+  margin-bottom:28px;border:1px solid var(--border);gap:4px;
+}
+.auth-tab{
+  flex:1;padding:10px;text-align:center;border-radius:9px;cursor:pointer;
+  font-size:13px;font-weight:500;color:var(--text2);transition:all 0.25s;
+  border:none;background:none;font-family:'DM Sans',sans-serif;
+}
+.auth-tab.active{background:var(--card2);color:var(--gold2);box-shadow:0 2px 10px rgba(0,0,0,0.3);}
+
+.auth-form{display:none;}
+.auth-form.active{display:block;}
+.form-group{margin-bottom:18px;}
+.form-group label{display:block;font-size:12px;font-weight:500;color:var(--text2);margin-bottom:7px;letter-spacing:0.4px;text-transform:uppercase;}
+.form-group input{
+  width:100%;padding:13px 16px;background:var(--bg3);border:1px solid var(--border);
+  border-radius:11px;color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;
+  transition:all 0.2s;outline:none;
+}
+.form-group input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,0.1);}
+.form-group input::placeholder{color:var(--text3);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+.btn-gold{
+  width:100%;padding:14px;
+  background:linear-gradient(135deg,var(--gold) 0%,var(--gold2) 100%);
+  border:none;border-radius:11px;color:#080c18;font-size:14px;font-weight:600;
+  cursor:pointer;transition:all 0.2s;font-family:'DM Sans',sans-serif;letter-spacing:0.3px;
+  margin-top:8px;
+}
+.btn-gold:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(201,168,76,0.35);}
+.btn-gold:active{transform:translateY(0);}
+.btn-outline{
+  width:100%;padding:13px;background:transparent;border:1px solid var(--border2);
+  border-radius:11px;color:var(--text2);font-size:14px;font-weight:500;
+  cursor:pointer;transition:all 0.2s;font-family:'DM Sans',sans-serif;
+}
+.btn-outline:hover{border-color:var(--gold);color:var(--gold2);}
+.btn-sm{
+  padding:8px 18px;background:linear-gradient(135deg,var(--gold),var(--gold2));
+  border:none;border-radius:8px;color:#080c18;font-size:13px;font-weight:600;
+  cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;
+}
+.btn-sm:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(201,168,76,0.3);}
+.btn-danger{
+  padding:8px 18px;background:var(--red2);border:none;border-radius:8px;
+  color:#fff;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;
+}
+.btn-danger:hover{background:var(--red);}
+.demo-hint{
+  text-align:center;margin-top:16px;font-size:12px;color:var(--text3);
+  padding:12px;background:var(--bg3);border-radius:9px;border:1px solid var(--border);
+}
+.demo-hint span{color:var(--gold2);font-weight:500;}
+.error-msg{
+  background:rgba(255,107,138,0.1);border:1px solid rgba(255,107,138,0.3);
+  border-radius:9px;padding:10px 14px;font-size:13px;color:var(--red);
+  margin-bottom:16px;display:none;
+}
+.success-msg{
+  background:rgba(45,212,164,0.1);border:1px solid rgba(45,212,164,0.3);
+  border-radius:9px;padding:10px 14px;font-size:13px;color:var(--green);
+  margin-bottom:16px;display:none;
+}
+
+/* ═══════════════════════════════════════════
+   APP LAYOUT
+═══════════════════════════════════════════ */
+#page-app{background:var(--bg2);}
+.app-layout{display:grid;grid-template-columns:260px 1fr;min-height:100vh;}
+
+/* ─── SIDEBAR ─── */
+.sidebar{
+  background:var(--card);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;
+}
+.sidebar-brand{
+  padding:28px 24px 20px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:12px;
+}
+.sidebar-brand .brand-icon-sm{
+  width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--gold),var(--gold2));
+  display:flex;align-items:center;justify-content:center;font-size:16px;
+  box-shadow:0 0 16px rgba(201,168,76,0.25);flex-shrink:0;
+}
+.sidebar-brand h2{
+  font-family:'Playfair Display',serif;font-size:20px;
+  background:linear-gradient(135deg,var(--gold2),var(--gold3));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+
+.sidebar-user{
+  padding:16px 20px;margin:12px;background:var(--bg3);border-radius:12px;
+  border:1px solid var(--border);
+}
+.sidebar-user .u-name{font-size:14px;font-weight:600;color:var(--text);}
+.sidebar-user .u-role{font-size:11px;color:var(--text2);margin-top:2px;}
+.sidebar-user .u-balance{
+  font-family:'DM Mono',monospace;font-size:13px;color:var(--gold2);
+  margin-top:8px;
+}
+
+.nav-section{padding:16px 16px 8px;}
+.nav-label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;padding:0 8px;}
+.nav-item{
+  display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:10px;
+  cursor:pointer;transition:all 0.2s;font-size:14px;font-weight:500;color:var(--text2);
+  margin-bottom:2px;border:none;background:none;width:100%;text-align:left;
+  font-family:'DM Sans',sans-serif;
+}
+.nav-item:hover{background:var(--card2);color:var(--text);}
+.nav-item.active{background:rgba(201,168,76,0.12);color:var(--gold2);border:1px solid rgba(201,168,76,0.2);}
+.nav-item .nav-icon{font-size:16px;width:20px;text-align:center;}
+.nav-badge{
+  margin-left:auto;background:var(--gold);color:#080c18;font-size:10px;
+  font-weight:700;padding:2px 7px;border-radius:20px;
+}
+
+.sidebar-footer{margin-top:auto;padding:16px;}
+.btn-logout{
+  width:100%;padding:11px;background:transparent;border:1px solid var(--border);
+  border-radius:10px;color:var(--text2);font-size:13px;font-weight:500;
+  cursor:pointer;transition:all 0.2s;font-family:'DM Sans',sans-serif;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.btn-logout:hover{border-color:var(--red);color:var(--red);background:rgba(255,107,138,0.05);}
+
+/* ─── MAIN CONTENT ─── */
+.main-content{overflow-y:auto;height:100vh;}
+.view{display:none;padding:32px;}
+.view.active{display:block;}
+.page-title{
+  font-family:'Playfair Display',serif;font-size:28px;font-weight:700;
+  color:var(--text);margin-bottom:4px;
+}
+.page-sub{color:var(--text2);font-size:14px;margin-bottom:28px;}
+.breadcrumb{font-size:12px;color:var(--text3);margin-bottom:8px;}
+.breadcrumb span{color:var(--text2);}
+
+/* ─── CARDS ─── */
+.card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:24px;
+}
+.card-sm{padding:18px;}
+.card-title{font-size:13px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:16px;}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+.grid-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;}
+
+/* ─── STAT CARDS ─── */
+.stat-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:20px;position:relative;overflow:hidden;
+}
+.stat-card::after{
+  content:'';position:absolute;top:0;right:0;width:80px;height:80px;
+  background:radial-gradient(circle,var(--accent-color,rgba(201,168,76,0.08)) 0%,transparent 70%);
+}
+.stat-card .stat-label{font-size:12px;color:var(--text2);font-weight:500;margin-bottom:8px;}
+.stat-card .stat-value{
+  font-family:'DM Mono',monospace;font-size:24px;font-weight:500;
+  color:var(--text);line-height:1;margin-bottom:6px;
+}
+.stat-card .stat-change{font-size:12px;font-weight:500;}
+.stat-card .stat-change.up{color:var(--green);}
+.stat-card .stat-change.down{color:var(--red);}
+.stat-icon{font-size:22px;margin-bottom:12px;}
+
+/* ─── TAGS ─── */
+.tag{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;letter-spacing:0.3px;}
+.tag-green{background:rgba(45,212,164,0.1);color:var(--green);border:1px solid rgba(45,212,164,0.2);}
+.tag-red{background:rgba(255,107,138,0.1);color:var(--red);border:1px solid rgba(255,107,138,0.2);}
+.tag-gold{background:rgba(201,168,76,0.1);color:var(--gold2);border:1px solid rgba(201,168,76,0.2);}
+.tag-blue{background:rgba(74,158,255,0.1);color:var(--blue);border:1px solid rgba(74,158,255,0.2);}
+.tag-purple{background:rgba(155,140,255,0.1);color:var(--purple);border:1px solid rgba(155,140,255,0.2);}
+
+/* ─── TABLE ─── */
+.table-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border);}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead tr{background:var(--bg3);}
+thead th{padding:12px 16px;text-align:left;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;}
+tbody tr{border-top:1px solid var(--border);transition:background 0.15s;}
+tbody tr:hover{background:var(--card2);}
+tbody td{padding:14px 16px;vertical-align:middle;}
+.td-mono{font-family:'DM Mono',monospace;font-size:13px;}
+
+/* ─── CHART AREA ─── */
+.chart-container{width:100%;height:200px;position:relative;margin-top:16px;}
+canvas{max-height:200px;}
+
+/* ─── PRODUCT CARDS ─── */
+.product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;}
+.product-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:24px;transition:all 0.25s;cursor:pointer;position:relative;overflow:hidden;
+}
+.product-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--card-accent1,var(--gold)),var(--card-accent2,var(--gold2)));
+}
+.product-card:hover{border-color:var(--border2);transform:translateY(-3px);box-shadow:var(--shadow);}
+.product-card .p-type{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;}
+.product-card .p-name{font-size:17px;font-weight:600;color:var(--text);margin-bottom:4px;line-height:1.3;}
+.product-card .p-mngr{font-size:12px;color:var(--text2);margin-bottom:16px;}
+.product-card .p-nav{
+  font-family:'DM Mono',monospace;font-size:24px;font-weight:500;
+  color:var(--text);margin-bottom:4px;
+}
+.product-card .p-return{font-size:13px;font-weight:600;}
+.product-card .p-meta{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;}
+
+/* ─── PORTFOLIO ITEMS ─── */
+.portfolio-item{
+  display:flex;align-items:center;gap:16px;padding:16px;
+  background:var(--card2);border-radius:12px;margin-bottom:10px;
+  border:1px solid var(--border);
+}
+.pi-icon{
+  width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+  font-size:20px;flex-shrink:0;
+}
+.pi-info{flex:1;}
+.pi-name{font-size:14px;font-weight:600;color:var(--text);}
+.pi-sub{font-size:12px;color:var(--text2);margin-top:2px;}
+.pi-value{text-align:right;}
+.pi-amount{font-family:'DM Mono',monospace;font-size:15px;font-weight:500;color:var(--text);}
+.pi-return{font-size:12px;font-weight:600;margin-top:2px;}
+
+/* ─── TICKER BAR ─── */
+.ticker-bar{
+  background:var(--bg3);border-bottom:1px solid var(--border);
+  overflow:hidden;height:36px;display:flex;align-items:center;
+}
+.ticker-track{
+  display:flex;gap:48px;white-space:nowrap;
+  animation:ticker 40s linear infinite;
+  font-family:'DM Mono',monospace;font-size:12px;
+}
+.ticker-track:hover{animation-play-state:paused;}
+@keyframes ticker{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
+.tick-item{display:flex;align-items:center;gap:8px;}
+.tick-name{color:var(--text2);font-weight:500;}
+.tick-val{color:var(--text);}
+.tick-chg.up{color:var(--green);}
+.tick-chg.down{color:var(--red);}
+
+/* ─── MODAL ─── */
+.modal-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);
+  backdrop-filter:blur(6px);z-index:1000;align-items:center;justify-content:center;padding:20px;
+}
+.modal-overlay.open{display:flex;}
+.modal{
+  background:var(--card);border:1px solid var(--border);border-radius:20px;
+  padding:32px;width:100%;max-width:480px;box-shadow:var(--shadow);
+  animation:modalIn 0.25s ease;
+}
+@keyframes modalIn{0%{opacity:0;transform:scale(0.95) translateY(10px);}100%{opacity:1;transform:scale(1) translateY(0);}}
+.modal-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;}
+.modal-title{font-family:'Playfair Display',serif;font-size:22px;color:var(--text);}
+.modal-sub{font-size:13px;color:var(--text2);margin-top:4px;}
+.modal-close{
+  background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;
+  padding:4px;line-height:1;transition:color 0.2s;
+}
+.modal-close:hover{color:var(--text);}
+.modal-body{}
+.modal-footer{margin-top:24px;display:flex;gap:10px;}
+.modal-footer .btn-gold{margin-top:0;}
+
+.fund-preview{
+  display:flex;align-items:center;gap:16px;padding:16px;
+  background:var(--bg3);border-radius:12px;border:1px solid var(--border);margin-bottom:20px;
+}
+.fund-preview .fp-icon{
+  width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;
+}
+.fund-preview .fp-name{font-size:15px;font-weight:600;color:var(--text);}
+.fund-preview .fp-nav{font-family:'DM Mono',monospace;font-size:13px;color:var(--gold2);margin-top:2px;}
+
+.input-group{position:relative;margin-bottom:16px;}
+.input-group label{display:block;font-size:12px;font-weight:500;color:var(--text2);margin-bottom:7px;text-transform:uppercase;letter-spacing:0.4px;}
+.input-group input{
+  width:100%;padding:13px 60px 13px 16px;background:var(--bg3);
+  border:1px solid var(--border);border-radius:11px;color:var(--text);
+  font-size:15px;font-family:'DM Mono',monospace;outline:none;transition:all 0.2s;
+}
+.input-group input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,0.1);}
+.input-suffix{
+  position:absolute;right:16px;top:50%;transform:translateY(50%);
+  font-size:12px;color:var(--text3);font-weight:500;
+}
+.lot-display{
+  display:flex;justify-content:space-between;padding:12px 16px;
+  background:var(--bg3);border-radius:10px;border:1px solid var(--border);
+  font-size:13px;margin-bottom:8px;
+}
+.lot-display .ld-label{color:var(--text2);}
+.lot-display .ld-val{font-family:'DM Mono',monospace;color:var(--text);}
+
+/* ─── TOAST ─── */
+.toast-container{position:fixed;bottom:24px;right:24px;z-index:2000;display:flex;flex-direction:column;gap:10px;}
+.toast{
+  background:var(--card2);border:1px solid var(--border);border-radius:12px;
+  padding:14px 18px;min-width:280px;font-size:14px;
+  box-shadow:var(--shadow);animation:toastIn 0.3s ease;
+  display:flex;align-items:center;gap:12px;
+}
+.toast.success{border-color:rgba(45,212,164,0.4);background:rgba(45,212,164,0.08);}
+.toast.error{border-color:rgba(255,107,138,0.4);background:rgba(255,107,138,0.08);}
+.toast-icon{font-size:18px;}
+@keyframes toastIn{0%{opacity:0;transform:translateX(20px);}100%{opacity:1;transform:translateX(0);}}
+
+/* ─── TOP BAR ─── */
+.topbar{
+  padding:16px 32px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--card);position:sticky;top:0;z-index:100;
+}
+.topbar-title{font-size:16px;font-weight:600;color:var(--text);}
+.topbar-right{display:flex;align-items:center;gap:16px;}
+.topbar-balance{
+  font-family:'DM Mono',monospace;font-size:14px;color:var(--gold2);
+  background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);
+  padding:8px 14px;border-radius:9px;
+}
+.topbar-notif{
+  width:36px;height:36px;border-radius:9px;background:var(--bg3);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;
+  transition:all 0.2s;position:relative;
+}
+.topbar-notif:hover{border-color:var(--border2);}
+.notif-dot{
+  position:absolute;top:6px;right:6px;width:8px;height:8px;
+  background:var(--gold);border-radius:50%;border:2px solid var(--card);
+}
+
+/* ─── ADMIN ─── */
+.admin-stat{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:20px;display:flex;align-items:center;gap:16px;
+}
+.admin-stat-icon{
+  width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;
+}
+.admin-stat-info .label{font-size:12px;color:var(--text2);font-weight:500;}
+.admin-stat-info .value{font-family:'DM Mono',monospace;font-size:22px;color:var(--text);margin-top:2px;}
+
+/* ─── SEARCH INPUT ─── */
+.search-input{
+  display:flex;align-items:center;gap:10px;background:var(--bg3);
+  border:1px solid var(--border);border-radius:11px;padding:10px 14px;
+  margin-bottom:20px;
+}
+.search-input span{color:var(--text3);font-size:16px;}
+.search-input input{
+  background:none;border:none;outline:none;color:var(--text);font-size:14px;
+  font-family:'DM Sans',sans-serif;width:100%;
+}
+.search-input input::placeholder{color:var(--text3);}
+
+/* ─── PROGRESS BAR ─── */
+.progress-bar{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-top:8px;}
+.progress-fill{height:100%;border-radius:3px;transition:width 0.5s ease;}
+
+/* ─── FILTER TABS ─── */
+.filter-tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+.filter-tab{
+  padding:8px 16px;border-radius:20px;font-size:13px;font-weight:500;
+  cursor:pointer;border:1px solid var(--border);background:none;
+  color:var(--text2);transition:all 0.2s;font-family:'DM Sans',sans-serif;
+}
+.filter-tab:hover{border-color:var(--border2);color:var(--text);}
+.filter-tab.active{background:rgba(201,168,76,0.1);border-color:rgba(201,168,76,0.3);color:var(--gold2);}
+
+/* ─── DIVIDER ─── */
+.divider{height:1px;background:var(--border);margin:20px 0;}
+
+/* ─── MISC ─── */
+.flex{display:flex;}.flex-between{justify-content:space-between;}.flex-center{align-items:center;}
+.gap-8{gap:8px;}.gap-12{gap:12px;}.gap-16{gap:16px;}
+.mt-4{margin-top:4px;}.mt-8{margin-top:8px;}.mt-12{margin-top:12px;}.mt-16{margin-top:16px;}.mt-24{margin-top:24px;}.mt-32{margin-top:32px;}
+.mb-8{margin-bottom:8px;}.mb-12{margin-bottom:12px;}.mb-16{margin-bottom:16px;}.mb-24{margin-bottom:24px;}
+.text-gold{color:var(--gold2);}.text-green{color:var(--green);}.text-red{color:var(--red);}.text-muted{color:var(--text2);}
+.font-mono{font-family:'DM Mono',monospace;}
+.fw-600{font-weight:600;}
+.bold{font-weight:700;}
+.text-sm{font-size:12px;}.text-xs{font-size:11px;}
+.hidden{display:none!important;}
+.w-full{width:100%;}
+</style>
+</head>
+<body>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- MODAL: BUY -->
+<div class="modal-overlay" id="modalBuy">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Beli Reksadana</div>
+        <div class="modal-sub" id="modalBuyType">Pasar Uang</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modalBuy')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="fund-preview" id="modalBuyPreview">
+        <div class="fp-icon" id="modalBuyIcon">💰</div>
+        <div>
+          <div class="fp-name" id="modalBuyName">Dana Likuid Pro</div>
+          <div class="fp-nav" id="modalBuyNav">NAV: Rp 1.234,56 / unit</div>
+        </div>
+        <div style="margin-left:auto;text-align:right">
+          <div class="tag tag-green" id="modalBuyReturn">+6.2%</div>
+          <div class="text-xs text-muted mt-4">1Y Return</div>
+        </div>
+      </div>
+      <div class="input-group">
+        <label>Nominal Investasi (Rp)</label>
+        <input type="number" id="buyAmount" placeholder="100000" min="10000" step="10000" oninput="calcLots()">
+        <span class="input-suffix">IDR</span>
+      </div>
+      <div class="lot-display">
+        <span class="ld-label">Estimasi Unit</span>
+        <span class="ld-val" id="buyLots">0.00 unit</span>
+      </div>
+      <div class="lot-display">
+        <span class="ld-label">Saldo Tersedia</span>
+        <span class="ld-val" id="buyBalance">Rp 0</span>
+      </div>
+      <div id="buyError" class="error-msg"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('modalBuy')" style="width:auto;padding:13px 24px;">Batal</button>
+      <button class="btn-gold" onclick="confirmBuy()" style="margin-top:0;">Konfirmasi Pembelian</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: SELL -->
+<div class="modal-overlay" id="modalSell">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Jual Reksadana</div>
+        <div class="modal-sub" id="modalSellType">Pasar Uang</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modalSell')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="fund-preview" id="modalSellPreview">
+        <div class="fp-icon" id="modalSellIcon">💰</div>
+        <div>
+          <div class="fp-name" id="modalSellName">Dana Likuid Pro</div>
+          <div class="fp-nav" id="modalSellNav">NAV saat ini: Rp 1.234,56</div>
+        </div>
+      </div>
+      <div class="input-group">
+        <label>Jumlah Unit</label>
+        <input type="number" id="sellUnits" placeholder="0" min="0" step="0.01" oninput="calcSellAmount()">
+        <span class="input-suffix">unit</span>
+      </div>
+      <div class="lot-display">
+        <span class="ld-label">Unit Dimiliki</span>
+        <span class="ld-val" id="sellOwnedUnits">0.00 unit</span>
+      </div>
+      <div class="lot-display">
+        <span class="ld-label">Estimasi Diterima</span>
+        <span class="ld-val" id="sellEstimate">Rp 0</span>
+      </div>
+      <div id="sellError" class="error-msg"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('modalSell')" style="width:auto;padding:13px 24px;">Batal</button>
+      <button class="btn-gold" onclick="confirmSell()" style="margin-top:0;">Konfirmasi Penjualan</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: TOPUP -->
+<div class="modal-overlay" id="modalTopup">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Top Up Saldo</div>
+      <button class="modal-close" onclick="closeModal('modalTopup')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="input-group">
+        <label>Nominal Top Up (Rp)</label>
+        <input type="number" id="topupAmount" placeholder="500000" min="10000">
+        <span class="input-suffix">IDR</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;">
+        <button class="btn-outline" onclick="setTopup(500000)" style="padding:10px;font-size:13px;">500rb</button>
+        <button class="btn-outline" onclick="setTopup(1000000)" style="padding:10px;font-size:13px;">1jt</button>
+        <button class="btn-outline" onclick="setTopup(5000000)" style="padding:10px;font-size:13px;">5jt</button>
+        <button class="btn-outline" onclick="setTopup(10000000)" style="padding:10px;font-size:13px;">10jt</button>
+        <button class="btn-outline" onclick="setTopup(25000000)" style="padding:10px;font-size:13px;">25jt</button>
+        <button class="btn-outline" onclick="setTopup(50000000)" style="padding:10px;font-size:13px;">50jt</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('modalTopup')" style="width:auto;padding:13px 24px;">Batal</button>
+      <button class="btn-gold" onclick="confirmTopup()">Top Up</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     AUTH PAGE
+═══════════════════════════════════════ -->
+<div id="page-auth" class="page active">
+  <div class="auth-orb"></div>
+  <div class="auth-wrap">
+    <div class="auth-brand">
+      <div class="brand-icon">📈</div>
+      <h1>InvestaID</h1>
+      <p>Platform Reksadana Digital Terpercaya</p>
+    </div>
+    <div class="auth-card">
+      <div class="auth-tabs">
+        <button class="auth-tab active" onclick="switchAuthTab('login')">Masuk</button>
+        <button class="auth-tab" onclick="switchAuthTab('register')">Daftar</button>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <div class="auth-form active" id="form-login">
+        <div class="error-msg" id="loginError"></div>
+        <div class="success-msg" id="loginSuccess"></div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="loginEmail" placeholder="nama@email.com" value="investor@demo.com">
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="loginPass" placeholder="••••••••" value="demo123">
+        </div>
+        <button class="btn-gold" onclick="doLogin()">Masuk ke Akun</button>
+        <div class="demo-hint" style="margin-top:14px;">
+          Demo: <span>investor@demo.com</span> / <span>demo123</span><br>
+          Admin: <span>admin@investaid.com</span> / <span>admin123</span>
+        </div>
+      </div>
+
+      <!-- REGISTER FORM -->
+      <div class="auth-form" id="form-register">
+        <div class="error-msg" id="regError"></div>
+        <div class="success-msg" id="regSuccess"></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nama Depan</label>
+            <input type="text" id="regFirst" placeholder="Budi">
+          </div>
+          <div class="form-group">
+            <label>Nama Belakang</label>
+            <input type="text" id="regLast" placeholder="Santoso">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="regEmail" placeholder="nama@email.com">
+        </div>
+        <div class="form-group">
+          <label>No. HP</label>
+          <input type="text" id="regPhone" placeholder="08xx-xxxx-xxxx">
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="regPass" placeholder="Min. 6 karakter">
+        </div>
+        <button class="btn-gold" onclick="doRegister()">Buat Akun Gratis</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     APP PAGE
+═══════════════════════════════════════ -->
+<div id="page-app" class="page">
+
+  <!-- TICKER BAR -->
+  <div class="ticker-bar">
+    <div class="ticker-track" id="tickerTrack">
+      <!-- filled by JS -->
+    </div>
+  </div>
+
+  <div class="app-layout">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-icon-sm">📈</div>
+        <h2>InvestaID</h2>
+      </div>
+
+      <div class="sidebar-user" style="margin:12px 12px 0;">
+        <div class="u-name" id="sidebarName">Budi Santoso</div>
+        <div class="u-role" id="sidebarRole">Investor Reguler</div>
+        <div class="u-balance" id="sidebarBalance">Rp 0</div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-label">Menu Utama</div>
+        <button class="nav-item active" onclick="switchView('dashboard')">
+          <span class="nav-icon">🏠</span> Dashboard
+        </button>
+        <button class="nav-item" onclick="switchView('portfolio')">
+          <span class="nav-icon">💼</span> Portofolio
+        </button>
+        <button class="nav-item" onclick="switchView('saldo')">
+          <span class="nav-icon">💳</span> Saldo & Transaksi
+        </button>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-label">Produk Investasi</div>
+        <button class="nav-item" onclick="switchView('pasar-uang')">
+          <span class="nav-icon">💧</span> Pasar Uang
+        </button>
+        <button class="nav-item" onclick="switchView('obligasi')">
+          <span class="nav-icon">🏛️</span> Obligasi
+        </button>
+        <button class="nav-item" onclick="switchView('saham')">
+          <span class="nav-icon">📊</span> Saham
+        </button>
+      </div>
+
+      <div class="nav-section" id="navAdmin" style="display:none;">
+        <div class="nav-label">Admin</div>
+        <button class="nav-item" onclick="switchView('admin')">
+          <span class="nav-icon">⚙️</span> Panel Admin
+        </button>
+      </div>
+
+      <div class="sidebar-footer">
+        <button class="btn-logout" onclick="doLogout()">
+          <span>🚪</span> Keluar
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main-content">
+
+      <!-- ── DASHBOARD ── -->
+      <div class="view active" id="view-dashboard">
+        <div class="topbar">
+          <div class="topbar-title">Dashboard</div>
+          <div class="topbar-right">
+            <div class="topbar-balance" id="topbarBalance">Rp 0</div>
+            <button class="btn-sm" onclick="openModal('modalTopup')">+ Top Up</button>
+            <div class="topbar-notif">🔔<div class="notif-dot"></div></div>
+          </div>
+        </div>
+
+        <div style="padding:32px;">
+          <div class="breadcrumb">InvestaID <span>/ Dashboard</span></div>
+          <div class="page-title" id="dashGreet">Selamat datang!</div>
+          <div class="page-sub">Pantau portofolio dan pasar hari ini.</div>
+
+          <!-- STAT GRID -->
+          <div class="grid-4 mb-24">
+            <div class="stat-card" style="--accent-color:rgba(201,168,76,0.1)">
+              <div class="stat-icon">💰</div>
+              <div class="stat-label">Total Portofolio</div>
+              <div class="stat-value" id="dashPortoTotal">Rp 0</div>
+              <div class="stat-change up" id="dashPortoChange">+0%</div>
+            </div>
+            <div class="stat-card" style="--accent-color:rgba(45,212,164,0.08)">
+              <div class="stat-icon">📈</div>
+              <div class="stat-label">Total Keuntungan</div>
+              <div class="stat-value" id="dashProfit">Rp 0</div>
+              <div class="stat-change" id="dashProfitPct">+0%</div>
+            </div>
+            <div class="stat-card" style="--accent-color:rgba(74,158,255,0.08)">
+              <div class="stat-icon">💳</div>
+              <div class="stat-label">Saldo Tersedia</div>
+              <div class="stat-value" id="dashSaldo">Rp 0</div>
+              <div class="stat-change" style="color:var(--text3);">Siap investasi</div>
+            </div>
+            <div class="stat-card" style="--accent-color:rgba(155,140,255,0.08)">
+              <div class="stat-icon">🏦</div>
+              <div class="stat-label">Produk Dimiliki</div>
+              <div class="stat-value" id="dashProdCount">0</div>
+              <div class="stat-change" style="color:var(--text3);">Reksadana</div>
+            </div>
+          </div>
+
+          <!-- CHART + ALLOCATION -->
+          <div class="grid-2 mb-24">
+            <div class="card">
+              <div class="card-title">Kinerja Portofolio (30 Hari)</div>
+              <canvas id="dashChart" height="180"></canvas>
+            </div>
+            <div class="card">
+              <div class="card-title">Alokasi Aset</div>
+              <canvas id="allocChart" height="180"></canvas>
+              <div id="allocLegend" style="margin-top:16px;display:flex;flex-direction:column;gap:8px;"></div>
+            </div>
+          </div>
+
+          <!-- TOP FUNDS -->
+          <div class="card mb-24">
+            <div class="flex flex-between flex-center mb-16">
+              <div class="card-title" style="margin-bottom:0;">Produk Terpopuler</div>
+              <button class="btn-sm" onclick="switchView('saham')">Lihat Semua</button>
+            </div>
+            <div id="topFundsList"></div>
+          </div>
+
+          <!-- RECENT TX -->
+          <div class="card">
+            <div class="flex flex-between flex-center mb-16">
+              <div class="card-title" style="margin-bottom:0;">Transaksi Terakhir</div>
+              <button class="btn-sm" onclick="switchView('saldo')">Lihat Semua</button>
+            </div>
+            <div id="dashRecentTx"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PORTFOLIO ── -->
+      <div class="view" id="view-portfolio">
+        <div class="topbar">
+          <div class="topbar-title">Portofolio Saya</div>
+          <div class="topbar-right">
+            <div class="topbar-balance" id="topbarBalance2">Rp 0</div>
+          </div>
+        </div>
+        <div style="padding:32px;">
+          <div class="breadcrumb">InvestaID <span>/ Portofolio</span></div>
+          <div class="page-title">Portofolio Saya</div>
+          <div class="page-sub">Semua investasi reksadana Anda.</div>
+
+          <div class="grid-3 mb-24">
+            <div class="stat-card">
+              <div class="stat-label">Nilai Saat Ini</div>
+              <div class="stat-value" id="portoNilai">Rp 0</div>
+              <div class="stat-change up" id="portoNilaiChg">+0%</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Modal Diinvestasikan</div>
+              <div class="stat-value" id="portoModal">Rp 0</div>
+              <div class="stat-change" style="color:var(--text3);">Total beli</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Keuntungan / Rugi</div>
+              <div class="stat-value" id="portoProfit">Rp 0</div>
+              <div class="stat-change" id="portoProfitPct">0%</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Rincian Kepemilikan</div>
+            <div id="portfolioList">
+              <div style="text-align:center;padding:40px;color:var(--text3);">
+                <div style="font-size:40px;margin-bottom:12px;">📭</div>
+                Belum ada investasi. Mulai dari menu produk!
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SALDO ── -->
+      <div class="view" id="view-saldo">
+        <div class="topbar">
+          <div class="topbar-title">Saldo & Transaksi</div>
+          <div class="topbar-right">
+            <button class="btn-sm" onclick="openModal('modalTopup')">+ Top Up</button>
+          </div>
+        </div>
+        <div style="padding:32px;">
+          <div class="breadcrumb">InvestaID <span>/ Saldo</span></div>
+          <div class="page-title">Saldo & Transaksi</div>
+          <div class="page-sub">Kelola saldo dan riwayat transaksi Anda.</div>
+
+          <div class="grid-2 mb-24">
+            <div class="card" style="background:linear-gradient(135deg,rgba(201,168,76,0.08),var(--card));border-color:rgba(201,168,76,0.2);">
+              <div class="card-title" style="color:var(--gold);">Saldo Aktif</div>
+              <div style="font-family:'DM Mono',monospace;font-size:36px;font-weight:500;color:var(--gold2);margin:8px 0;" id="saldoAmount">Rp 0</div>
+              <div class="text-muted text-sm">Siap diinvestasikan</div>
+              <div style="margin-top:20px;display:flex;gap:10px;">
+                <button class="btn-sm" onclick="openModal('modalTopup')">+ Top Up</button>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title">Statistik Transaksi</div>
+              <div style="display:flex;flex-direction:column;gap:12px;margin-top:4px;" id="txStats"></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="flex flex-between flex-center mb-16">
+              <div class="card-title" style="margin-bottom:0;">Riwayat Transaksi</div>
+              <div class="filter-tabs" style="margin-bottom:0;">
+                <button class="filter-tab active" onclick="filterTx('all',this)">Semua</button>
+                <button class="filter-tab" onclick="filterTx('topup',this)">Top Up</button>
+                <button class="filter-tab" onclick="filterTx('beli',this)">Pembelian</button>
+                <button class="filter-tab" onclick="filterTx('jual',this)">Penjualan</button>
+              </div>
+            </div>
+            <div id="txList"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PASAR UANG ── -->
+      <div class="view" id="view-pasar-uang">
+        <div class="topbar">
+          <div class="topbar-title">Reksadana Pasar Uang</div>
+          <div class="topbar-right">
+            <div class="topbar-balance" id="topbarBalance3">Rp 0</div>
+          </div>
+        </div>
+        <div style="padding:32px;">
+          <div class="breadcrumb">InvestaID <span>/ Pasar Uang</span></div>
+          <div class="page-title">Pasar Uang</div>
+          <div class="page-sub">Produk likuid dengan imbal hasil stabil. Cocok untuk dana darurat.</div>
+          <div class="product-grid" id="listPasarUang"></div>
+        </div>
+      </div>
+
+      <!-- ── OBLIGASI ── -->
+      <div class="view" id="view-obligasi">
+        <div class="topbar">
+          <div class="topbar-title">Reksadana Obligasi</div>
+          <div class="topbar-right">
+            <div class="topbar-balance" id="topbarBalance4">Rp 0</div>
+          </div>
+        </div>
+        <div style="padding:32px;">
+          <div class="breadcrumb">InvestaID <span>/ Obligasi</span></div>
+          <div class="page-title">Obligasi</div>
+          <div class="page-sub">Investasi pendapatan tetap dengan risiko menengah.</div>
+          <div class="product-grid" id="listObligasi"></div>
+        </div>
+      </div>
+
+      <!-- ── SAHAM ── -->
+      <div class="view" id="view-saham">
+        <div class="topbar">
+          <div class="topbar-title">Reksadana Saham</div>
+          <div class="topbar-right">
+            <div class="topbar-balance" id="topbarBalance5">Rp 0</div>
+          </div>
+        </div>
+        <div style="padding:32px;">
+          <div class="breadcrumb">InvestaID <span>/ Saham</span></div>
+          <div class="page-title">Reksadana Saham</div>
+          <div class="page-sub">Potensi return tertinggi untuk jangka panjang.</div>
+          <div class="product-grid" id="listSaham"></div>
+        </div>
+      </div>
+
+      <!-- ── ADMIN ── -->
+      <div class="view" id="view-admin">
+        <div class="topbar">
+          <div class="topbar-title">Panel Administrasi</div>
+        </div>
+        <div style="padding:32px;">
+          <div class="breadcrumb">InvestaID <span>/ Admin</span></div>
+          <div class="page-title">Panel Admin</div>
+          <div class="page-sub">Kelola pengguna dan platform InvestaID.</div>
+
+          <div class="grid-4 mb-24">
+            <div class="admin-stat">
+              <div class="admin-stat-icon" style="background:rgba(201,168,76,0.1);">👥</div>
+              <div class="admin-stat-info">
+                <div class="label">Total Pengguna</div>
+                <div class="value" id="adminTotalUsers">0</div>
+              </div>
+            </div>
+            <div class="admin-stat">
+              <div class="admin-stat-icon" style="background:rgba(45,212,164,0.1);">💰</div>
+              <div class="admin-stat-info">
+                <div class="label">Total AUM</div>
+                <div class="value" id="adminAUM">Rp 0</div>
+              </div>
+            </div>
+            <div class="admin-stat">
+              <div class="admin-stat-icon" style="background:rgba(74,158,255,0.1);">📋</div>
+              <div class="admin-stat-info">
+                <div class="label">Total Transaksi</div>
+                <div class="value" id="adminTxCount">0</div>
+              </div>
+            </div>
+            <div class="admin-stat">
+              <div class="admin-stat-icon" style="background:rgba(155,140,255,0.1);">📈</div>
+              <div class="admin-stat-info">
+                <div class="label">Produk Aktif</div>
+                <div class="value">15</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card mb-24">
+            <div class="flex flex-between flex-center mb-16">
+              <div class="card-title" style="margin-bottom:0;">Manajemen Pengguna</div>
+              <div class="search-input" style="margin-bottom:0;width:240px;">
+                <span>🔍</span>
+                <input type="text" id="adminSearch" placeholder="Cari pengguna..." oninput="renderAdminUsers()">
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Nama</th>
+                    <th>Email</th>
+                    <th>Saldo</th>
+                    <th>Total Investasi</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="adminUsersTable"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Semua Transaksi Platform</div>
+            <div class="table-wrap" style="margin-top:0;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Waktu</th>
+                    <th>Pengguna</th>
+                    <th>Jenis</th>
+                    <th>Produk</th>
+                    <th>Nominal</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="adminTxTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  DATABASE (localStorage)
+// ═══════════════════════════════════════════════════════
+const DB_KEY = 'investaid_db';
+
+function initDB() {
+  if (!localStorage.getItem(DB_KEY)) {
+    const db = {
+      users: [
+        {
+          id: 'u1', email: 'investor@demo.com', pass: 'demo123',
+          name: 'Budi Santoso', phone: '081234567890',
+          role: 'investor', balance: 10000000, active: true,
+          createdAt: Date.now() - 86400000 * 30,
+          holdings: {},
+          transactions: [
+            { id: 't1', type: 'topup', amount: 10000000, note: 'Top Up Awal', date: Date.now() - 86400000 * 30, status: 'sukses' }
+          ]
+        },
+        {
+          id: 'u2', email: 'admin@investaid.com', pass: 'admin123',
+          name: 'Admin InvestaID', phone: '021-555-0000',
+          role: 'admin', balance: 0, active: true,
+          createdAt: Date.now() - 86400000 * 90,
+          holdings: {}, transactions: []
+        }
+      ]
+    };
+    saveDB(db);
+  }
+}
+
+function getDB() { return JSON.parse(localStorage.getItem(DB_KEY)); }
+function saveDB(db) { localStorage.setItem(DB_KEY, JSON.stringify(db)); }
+function getUser(id) { return getDB().users.find(u => u.id === id); }
+function saveUser(user) {
+  const db = getDB();
+  const idx = db.users.findIndex(u => u.id === user.id);
+  db.users[idx] = user;
+  saveDB(db);
+}
+
+// ═══════════════════════════════════════════════════════
+//  FUND DATA
+// ═══════════════════════════════════════════════════════
+const FUNDS = {
+  // PASAR UANG
+  'PU001': {
+    id: 'PU001', type: 'pasar-uang', name: 'Dana Likuid Pro', manager: 'Manulife AM',
+    icon: '💧', nav: 1234.56, baseNav: 1150,
+    return1y: 6.2, return3y: 18.4, return5y: 32.1,
+    risk: 'Rendah', minBuy: 10000, aum: 12500000000,
+    accent1: '#4a9eff', accent2: '#7bc4ff',
+    desc: 'Reksadana pasar uang dengan portofolio deposito dan SBI berkualitas tinggi.'
+  },
+  'PU002': {
+    id: 'PU002', type: 'pasar-uang', name: 'Likuid Stabil', manager: 'Schroders IM',
+    icon: '💧', nav: 2045.30, baseNav: 1900,
+    return1y: 5.8, return3y: 17.2, return5y: 29.8,
+    risk: 'Rendah', minBuy: 10000, aum: 8900000000,
+    accent1: '#2dd4a4', accent2: '#5ef5d0',
+    desc: 'Fokus pada instrumen pasar uang jangka pendek dengan likuiditas tinggi.'
+  },
+  'PU003': {
+    id: 'PU003', type: 'pasar-uang', name: 'Cash Plus Fund', manager: 'Trimegah AM',
+    icon: '💧', nav: 1567.80, baseNav: 1450,
+    return1y: 6.5, return3y: 19.1, return5y: 33.5,
+    risk: 'Rendah', minBuy: 100000, aum: 6200000000,
+    accent1: '#c9a84c', accent2: '#e8c97a',
+    desc: 'Instrumen pasar uang premium dengan yield kompetitif.'
+  },
+  'PU004': {
+    id: 'PU004', type: 'pasar-uang', name: 'Safe Harbour Fund', manager: 'BNI AM',
+    icon: '💧', nav: 987.45, baseNav: 920,
+    return1y: 5.5, return3y: 16.5, return5y: 28.2,
+    risk: 'Rendah', minBuy: 10000, aum: 15000000000,
+    accent1: '#9b8cff', accent2: '#c4baff',
+    desc: 'Dana pasar uang konservatif yang dikelola bank berpengalaman.'
+  },
+  'PU005': {
+    id: 'PU005', type: 'pasar-uang', name: 'Optima Kas', manager: 'Bahana TCW',
+    icon: '💧', nav: 1122.90, baseNav: 1050,
+    return1y: 6.9, return3y: 20.5, return5y: 36.0,
+    risk: 'Rendah', minBuy: 50000, aum: 4800000000,
+    accent1: '#ff9f4a', accent2: '#ffcf8a',
+    desc: 'Reksadana pasar uang dengan strategi aktif untuk return optimal.'
+  },
+  // OBLIGASI
+  'OB001': {
+    id: 'OB001', type: 'obligasi', name: 'Pendapatan Tetap I', manager: 'Danareksa IM',
+    icon: '🏛️', nav: 3456.78, baseNav: 3100,
+    return1y: 8.9, return3y: 28.2, return5y: 52.1,
+    risk: 'Menengah', minBuy: 100000, aum: 22000000000,
+    accent1: '#c9a84c', accent2: '#e8c97a',
+    desc: 'Portofolio obligasi pemerintah dan korporasi pilihan dengan kupon menarik.'
+  },
+  'OB002': {
+    id: 'OB002', type: 'obligasi', name: 'SBN Sejahtera', manager: 'BRI Invest',
+    icon: '🏛️', nav: 5123.45, baseNav: 4700,
+    return1y: 9.2, return3y: 29.8, return5y: 55.3,
+    risk: 'Menengah', minBuy: 100000, aum: 18000000000,
+    accent1: '#4a9eff', accent2: '#7bc4ff',
+    desc: 'Fokus pada Surat Berharga Negara (SBN) dengan imbal hasil terjamin.'
+  },
+  'OB003': {
+    id: 'OB003', type: 'obligasi', name: 'Fixed Income Plus', manager: 'Panin AM',
+    icon: '🏛️', nav: 2789.12, baseNav: 2500,
+    return1y: 10.1, return3y: 32.5, return5y: 61.2,
+    risk: 'Menengah-Tinggi', minBuy: 200000, aum: 9500000000,
+    accent1: '#2dd4a4', accent2: '#5ef5d0',
+    desc: 'Campuran obligasi korporasi berperingkat tinggi dan obligasi pemerintah.'
+  },
+  'OB004': {
+    id: 'OB004', type: 'obligasi', name: 'Sukuk Berkah', manager: 'Mandiri IM',
+    icon: '🏛️', nav: 1890.67, baseNav: 1700,
+    return1y: 7.8, return3y: 24.6, return5y: 44.5,
+    risk: 'Menengah', minBuy: 100000, aum: 11000000000,
+    accent1: '#9b8cff', accent2: '#c4baff',
+    desc: 'Portofolio sukuk syariah dengan prinsip investasi halal.'
+  },
+  'OB005': {
+    id: 'OB005', type: 'obligasi', name: 'Corporate Bond Elite', manager: 'CIMB Principal',
+    icon: '🏛️', nav: 4321.09, baseNav: 3900,
+    return1y: 11.5, return3y: 36.8, return5y: 70.2,
+    risk: 'Menengah-Tinggi', minBuy: 500000, aum: 7200000000,
+    accent1: '#ff6b8a', accent2: '#ffaabb',
+    desc: 'Obligasi korporasi pilihan dengan yield premium di atas obligasi pemerintah.'
+  },
+  // SAHAM
+  'SA001': {
+    id: 'SA001', type: 'saham', name: 'Ekuitas Unggulan', manager: 'Manulife AM',
+    icon: '📊', nav: 8765.43, baseNav: 6500,
+    return1y: 22.4, return3y: 68.5, return5y: 142.3,
+    risk: 'Tinggi', minBuy: 100000, aum: 45000000000,
+    accent1: '#ff9f4a', accent2: '#ffcf8a',
+    desc: 'Portofolio saham blue-chip Indonesia dengan potensi pertumbuhan optimal.'
+  },
+  'SA002': {
+    id: 'SA002', type: 'saham', name: 'Growth Fund Pro', manager: 'Schroders IM',
+    icon: '📊', nav: 12345.67, baseNav: 9800,
+    return1y: 18.9, return3y: 58.3, return5y: 118.5,
+    risk: 'Tinggi', minBuy: 100000, aum: 38000000000,
+    accent1: '#c9a84c', accent2: '#e8c97a',
+    desc: 'Saham-saham dengan prospek pertumbuhan tinggi di berbagai sektor.'
+  },
+  'SA003': {
+    id: 'SA003', type: 'saham', name: 'IDX30 Index Fund', manager: 'Indopremier AM',
+    icon: '📊', nav: 6543.21, baseNav: 5200,
+    return1y: 25.8, return3y: 79.2, return5y: 168.4,
+    risk: 'Tinggi', minBuy: 100000, aum: 28000000000,
+    accent1: '#4a9eff', accent2: '#7bc4ff',
+    desc: 'Mengikuti indeks IDX30 saham terlikuid di Bursa Efek Indonesia.'
+  },
+  'SA004': {
+    id: 'SA004', type: 'saham', name: 'Teknologi & Digital', manager: 'BNI AM',
+    icon: '📊', nav: 3456.78, baseNav: 2400,
+    return1y: 32.1, return3y: 95.4, return5y: 210.8,
+    risk: 'Sangat Tinggi', minBuy: 200000, aum: 15000000000,
+    accent1: '#9b8cff', accent2: '#c4baff',
+    desc: 'Fokus pada saham perusahaan teknologi dan ekonomi digital Indonesia.'
+  },
+  'SA005': {
+    id: 'SA005', type: 'saham', name: 'Dividend Aristocrat', manager: 'Trimegah AM',
+    icon: '📊', nav: 9876.54, baseNav: 8100,
+    return1y: 15.6, return3y: 47.8, return5y: 95.2,
+    risk: 'Tinggi', minBuy: 500000, aum: 21000000000,
+    accent1: '#2dd4a4', accent2: '#5ef5d0',
+    desc: 'Saham-saham pembagi dividen konsisten untuk passive income.'
+  },
+};
+
+// NAV live simulation
+let navMultipliers = {};
+Object.keys(FUNDS).forEach(id => { navMultipliers[id] = 1; });
+
+// ═══════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════
+let currentUser = null;
+let currentFundId = null;
+let txFilter = 'all';
+let charts = {};
+
+// ═══════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════
+initDB();
+setInterval(simulateNav, 3000);
+setInterval(updateTicker, 5000);
+buildTicker();
+
+// ═══════════════════════════════════════════════════════
+//  NAV SIMULATION
+// ═══════════════════════════════════════════════════════
+function simulateNav() {
+  Object.keys(FUNDS).forEach(id => {
+    const f = FUNDS[id];
+    let volatility = f.type === 'saham' ? 0.008 : f.type === 'obligasi' ? 0.004 : 0.002;
+    let change = (Math.random() - 0.48) * volatility;
+    navMultipliers[id] = Math.max(0.7, navMultipliers[id] + change);
+    FUNDS[id].nav = Math.round(f.baseNav * navMultipliers[id] * 100) / 100;
+
+    // Update product cards if visible
+    const navEl = document.getElementById('nav-' + id);
+    if (navEl) navEl.textContent = 'Rp ' + formatNum(FUNDS[id].nav);
+
+    // Recalculate portfolio values
+    if (currentUser) refreshPortfolioValues();
+  });
+}
+
+function getCurrentNav(id) { return FUNDS[id].nav; }
+
+// ═══════════════════════════════════════════════════════
+//  TICKER
+// ═══════════════════════════════════════════════════════
+function buildTicker() {
+  updateTicker();
+}
+
+function updateTicker() {
+  const track = document.getElementById('tickerTrack');
+  if (!track) return;
+  const items = Object.values(FUNDS).map(f => {
+    const chg = ((f.nav - f.baseNav) / f.baseNav * 100);
+    const cls = chg >= 0 ? 'up' : 'down';
+    const sign = chg >= 0 ? '+' : '';
+    return `<span class="tick-item"><span class="tick-name">${f.id}</span><span class="tick-val">Rp ${formatNum(f.nav)}</span><span class="tick-chg ${cls}">${sign}${chg.toFixed(2)}%</span></span>`;
+  });
+  const html = items.join('') + items.join(''); // duplicate for seamless loop
+  track.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════
+//  AUTH
+// ═══════════════════════════════════════════════════════
+function switchAuthTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach((el,i) => el.classList.toggle('active', (tab==='login'&&i===0)||(tab==='register'&&i===1)));
+  document.getElementById('form-login').classList.toggle('active', tab === 'login');
+  document.getElementById('form-register').classList.toggle('active', tab === 'register');
+}
+
+function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  const errEl = document.getElementById('loginError');
+  errEl.style.display = 'none';
+
+  const db = getDB();
+  const user = db.users.find(u => u.email === email && u.pass === pass);
+  if (!user) { errEl.textContent = 'Email atau password salah.'; errEl.style.display = 'block'; return; }
+  if (!user.active) { errEl.textContent = 'Akun Anda dinonaktifkan.'; errEl.style.display = 'block'; return; }
+
+  currentUser = user.id;
+  enterApp();
+}
+
+function doRegister() {
+  const first = document.getElementById('regFirst').value.trim();
+  const last = document.getElementById('regLast').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const phone = document.getElementById('regPhone').value.trim();
+  const pass = document.getElementById('regPass').value;
+  const errEl = document.getElementById('regError');
+  const sucEl = document.getElementById('regSuccess');
+  errEl.style.display = 'none'; sucEl.style.display = 'none';
+
+  if (!first || !email || !pass) { errEl.textContent = 'Nama, email, dan password wajib diisi.'; errEl.style.display = 'block'; return; }
+  if (pass.length < 6) { errEl.textContent = 'Password minimal 6 karakter.'; errEl.style.display = 'block'; return; }
+
+  const db = getDB();
+  if (db.users.find(u => u.email === email)) { errEl.textContent = 'Email sudah terdaftar.'; errEl.style.display = 'block'; return; }
+
+  const newUser = {
+    id: 'u' + Date.now(), email, pass, name: first + ' ' + last,
+    phone, role: 'investor', balance: 0, active: true,
+    createdAt: Date.now(), holdings: {},
+    transactions: []
+  };
+  db.users.push(newUser);
+  saveDB(db);
+  sucEl.textContent = 'Akun berhasil dibuat! Silakan masuk.';
+  sucEl.style.display = 'block';
+  setTimeout(() => switchAuthTab('login'), 1500);
+}
+
+function doLogout() {
+  currentUser = null;
+  document.getElementById('page-app').classList.remove('active');
+  document.getElementById('page-auth').classList.add('active');
+  // Clear charts
+  Object.values(charts).forEach(c => { if(c) c.destroy(); });
+  charts = {};
+}
+
+// ═══════════════════════════════════════════════════════
+//  ENTER APP
+// ═══════════════════════════════════════════════════════
+function enterApp() {
+  document.getElementById('page-auth').classList.remove('active');
+  document.getElementById('page-app').classList.add('active');
+  const user = getUser(currentUser);
+  updateSidebar(user);
+  if (user.role === 'admin') document.getElementById('navAdmin').style.display = 'block';
+  else document.getElementById('navAdmin').style.display = 'none';
+  renderProductLists();
+  switchView('dashboard');
+}
+
+function updateSidebar(user) {
+  if (!user) return;
+  document.getElementById('sidebarName').textContent = user.name;
+  document.getElementById('sidebarRole').textContent = user.role === 'admin' ? '⚡ Administrator' : 'Investor Reguler';
+  document.getElementById('sidebarBalance').textContent = 'Rp ' + formatNum(user.balance);
+}
+
+function refreshBalanceUI() {
+  const user = getUser(currentUser);
+  if (!user) return;
+  updateSidebar(user);
+  const bal = 'Rp ' + formatNum(user.balance);
+  ['topbarBalance','topbarBalance2','topbarBalance3','topbarBalance4','topbarBalance5']
+    .forEach(id => { const el = document.getElementById(id); if(el) el.textContent = bal; });
+  const sa = document.getElementById('saldoAmount');
+  if (sa) sa.textContent = 'Rp ' + formatNum(user.balance);
+}
+
+// ═══════════════════════════════════════════════════════
+//  VIEW SWITCHING
+// ═══════════════════════════════════════════════════════
+function switchView(view) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('view-' + view).classList.add('active');
+  // Highlight nav
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if (n.getAttribute('onclick') && n.getAttribute('onclick').includes("'" + view + "'")) n.classList.add('active');
+  });
+  refreshBalanceUI();
+  if (view === 'dashboard') renderDashboard();
+  else if (view === 'portfolio') renderPortfolio();
+  else if (view === 'saldo') renderSaldo();
+  else if (view === 'admin') renderAdmin();
+}
+
+// ═══════════════════════════════════════════════════════
+//  RENDER DASHBOARD
+// ═══════════════════════════════════════════════════════
+function renderDashboard() {
+  const user = getUser(currentUser);
+  const hour = new Date().getHours();
+  const greet = hour < 12 ? 'Selamat Pagi' : hour < 17 ? 'Selamat Siang' : 'Selamat Malam';
+  document.getElementById('dashGreet').textContent = greet + ', ' + user.name.split(' ')[0] + '! 👋';
+  document.getElementById('dashSaldo').textContent = 'Rp ' + formatNum(user.balance);
+
+  const { totalValue, totalModal, totalProfit, profitPct, count } = calcPortfolio(user);
+  document.getElementById('dashPortoTotal').textContent = 'Rp ' + formatNum(totalValue);
+  document.getElementById('dashPortoChange').textContent = (profitPct >= 0 ? '+' : '') + profitPct.toFixed(2) + '%';
+  document.getElementById('dashPortoChange').className = 'stat-change ' + (profitPct >= 0 ? 'up' : 'down');
+  document.getElementById('dashProfit').textContent = 'Rp ' + formatNum(totalProfit);
+  document.getElementById('dashProfitPct').textContent = (profitPct >= 0 ? '+' : '') + profitPct.toFixed(2) + '%';
+  document.getElementById('dashProfitPct').className = 'stat-change ' + (profitPct >= 0 ? 'up' : 'down');
+  document.getElementById('dashProdCount').textContent = count;
+
+  renderDashChart();
+  renderAllocChart(user);
+  renderTopFunds();
+  renderRecentTx(user);
+}
+
+function calcPortfolio(user) {
+  let totalValue = 0, totalModal = 0, count = 0;
+  Object.entries(user.holdings || {}).forEach(([fid, h]) => {
+    if (h.units > 0) {
+      totalValue += h.units * getCurrentNav(fid);
+      totalModal += h.invested;
+      count++;
+    }
+  });
+  const totalProfit = totalValue - totalModal;
+  const profitPct = totalModal > 0 ? (totalProfit / totalModal * 100) : 0;
+  return { totalValue, totalModal, totalProfit, profitPct, count };
+}
+
+function refreshPortfolioValues() {
+  if (!currentUser) return;
+  const user = getUser(currentUser);
+  const { totalValue, totalModal, totalProfit, profitPct } = calcPortfolio(user);
+  // Update dashboard if visible
+  const dashView = document.getElementById('view-dashboard');
+  if (dashView && dashView.classList.contains('active')) {
+    document.getElementById('dashPortoTotal').textContent = 'Rp ' + formatNum(totalValue);
+    document.getElementById('dashProfit').textContent = 'Rp ' + formatNum(totalProfit);
+  }
+  // Update portfolio items
+  Object.entries(user.holdings || {}).forEach(([fid, h]) => {
+    const el = document.getElementById('pi-val-' + fid);
+    if (el) {
+      const curr = h.units * getCurrentNav(fid);
+      el.textContent = 'Rp ' + formatNum(curr);
+    }
+    const el2 = document.getElementById('pi-ret-' + fid);
+    if (el2) {
+      const curr = h.units * getCurrentNav(fid);
+      const profit = curr - h.invested;
+      const pct = h.invested > 0 ? profit / h.invested * 100 : 0;
+      el2.textContent = (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%';
+      el2.className = 'pi-return ' + (pct >= 0 ? 'text-green' : 'text-red');
+    }
+  });
+}
+
+function renderDashChart() {
+  const ctx = document.getElementById('dashChart');
+  if (!ctx) return;
+  if (charts.dash) { charts.dash.destroy(); }
+  const user = getUser(currentUser);
+  const { totalValue } = calcPortfolio(user);
+  // Simulate 30-day history
+  const labels = [], data = [];
+  const base = Math.max(totalValue * 0.85, 100000);
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    labels.push(d.getDate() + '/' + (d.getMonth()+1));
+    const noise = (Math.random() - 0.4) * 0.03;
+    const prev = data.length > 0 ? data[data.length-1] : base;
+    data.push(Math.max(base * 0.5, prev * (1 + noise)));
+  }
+  if (totalValue > 0) data[data.length-1] = totalValue;
+
+  charts.dash = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        data,
+        borderColor: '#c9a84c',
+        backgroundColor: 'rgba(201,168,76,0.06)',
+        fill: true,
+        tension: 0.4,
+        pointRadius: 0,
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#5a6a90', font: { size: 10 }, maxTicksLimit: 8 } },
+        y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#5a6a90', font: { size: 10 }, callback: v => 'Rp ' + (v/1000000).toFixed(1) + 'jt' } }
+      }
+    }
+  });
+}
+
+function renderAllocChart(user) {
+  const ctx = document.getElementById('allocChart');
+  if (!ctx) return;
+  if (charts.alloc) { charts.alloc.destroy(); }
+  const alloc = { 'Pasar Uang': 0, 'Obligasi': 0, 'Saham': 0 };
+  Object.entries(user.holdings || {}).forEach(([fid, h]) => {
+    if (h.units > 0) {
+      const f = FUNDS[fid];
+      const val = h.units * getCurrentNav(fid);
+      if (f.type === 'pasar-uang') alloc['Pasar Uang'] += val;
+      else if (f.type === 'obligasi') alloc['Obligasi'] += val;
+      else alloc['Saham'] += val;
+    }
+  });
+  const labels = Object.keys(alloc).filter(k => alloc[k] > 0);
+  const values = labels.map(k => alloc[k]);
+  const colors = ['#4a9eff','#c9a84c','#ff9f4a'];
+  const legendEl = document.getElementById('allocLegend');
+
+  if (values.length === 0) {
+    if (legendEl) legendEl.innerHTML = '<div style="text-align:center;color:var(--text3);font-size:13px;padding:20px;">Belum ada investasi</div>';
+    return;
+  }
+
+  charts.alloc = new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data: values, backgroundColor: colors, borderColor: '#131d30', borderWidth: 3 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ctx.label + ': Rp ' + formatNum(ctx.raw) } } },
+      cutout: '65%'
+    }
+  });
+
+  if (legendEl) {
+    const total = values.reduce((a,b) => a+b, 0);
+    legendEl.innerHTML = labels.map((l, i) => `
+      <div class="flex flex-between flex-center">
+        <div class="flex flex-center gap-8"><span style="width:10px;height:10px;border-radius:3px;background:${colors[i]};display:inline-block;"></span><span class="text-sm text-muted">${l}</span></div>
+        <span class="text-sm font-mono">${(values[i]/total*100).toFixed(1)}%</span>
+      </div>`).join('');
+  }
+}
+
+function renderTopFunds() {
+  const el = document.getElementById('topFundsList');
+  if (!el) return;
+  const top = Object.values(FUNDS).sort((a,b) => b.return1y - a.return1y).slice(0, 5);
+  el.innerHTML = top.map(f => `
+    <div class="portfolio-item" style="cursor:pointer;" onclick="switchView('${f.type}')">
+      <div class="pi-icon" style="background:rgba(201,168,76,0.1);">${f.icon}</div>
+      <div class="pi-info">
+        <div class="pi-name">${f.name}</div>
+        <div class="pi-sub">${f.manager} • ${f.risk}</div>
+      </div>
+      <div class="pi-value">
+        <div class="pi-amount">Rp ${formatNum(f.nav)}</div>
+        <div class="pi-return text-green">+${f.return1y}% / 1Y</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderRecentTx(user) {
+  const el = document.getElementById('dashRecentTx');
+  if (!el) return;
+  const txs = (user.transactions || []).slice(-5).reverse();
+  if (!txs.length) { el.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">Belum ada transaksi</div>'; return; }
+  el.innerHTML = txs.map(tx => txRow(tx)).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+//  RENDER PORTFOLIO
+// ═══════════════════════════════════════════════════════
+function renderPortfolio() {
+  const user = getUser(currentUser);
+  const { totalValue, totalModal, totalProfit, profitPct } = calcPortfolio(user);
+  document.getElementById('portoNilai').textContent = 'Rp ' + formatNum(totalValue);
+  document.getElementById('portoNilaiChg').textContent = (profitPct >= 0 ? '+' : '') + profitPct.toFixed(2) + '%';
+  document.getElementById('portoNilaiChg').className = 'stat-change ' + (profitPct >= 0 ? 'up' : 'down');
+  document.getElementById('portoModal').textContent = 'Rp ' + formatNum(totalModal);
+  document.getElementById('portoProfit').textContent = (totalProfit >= 0 ? '+' : '') + 'Rp ' + formatNum(Math.abs(totalProfit));
+  document.getElementById('portoProfitPct').textContent = (profitPct >= 0 ? '+' : '') + profitPct.toFixed(2) + '%';
+  document.getElementById('portoProfitPct').className = 'stat-change ' + (profitPct >= 0 ? 'up' : 'down');
+
+  const holdings = Object.entries(user.holdings || {}).filter(([,h]) => h.units > 0);
+  const el = document.getElementById('portfolioList');
+  if (!holdings.length) {
+    el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);"><div style="font-size:40px;margin-bottom:12px;">📭</div>Belum ada investasi. Mulai dari menu produk!</div>';
+    return;
+  }
+  el.innerHTML = holdings.map(([fid, h]) => {
+    const f = FUNDS[fid];
+    const curr = h.units * getCurrentNav(fid);
+    const profit = curr - h.invested;
+    const pct = h.invested > 0 ? profit / h.invested * 100 : 0;
+    const typeLabel = f.type === 'pasar-uang' ? 'Pasar Uang' : f.type === 'obligasi' ? 'Obligasi' : 'Saham';
+    const typeColor = f.type === 'pasar-uang' ? 'tag-blue' : f.type === 'obligasi' ? 'tag-gold' : 'tag-green';
+    return `
+      <div class="portfolio-item">
+        <div class="pi-icon" style="background:rgba(201,168,76,0.1);">${f.icon}</div>
+        <div class="pi-info">
+          <div class="pi-name">${f.name}</div>
+          <div class="pi-sub" style="display:flex;gap:8px;align-items:center;margin-top:4px;">
+            <span class="tag ${typeColor}">${typeLabel}</span>
+            <span>${f.manager}</span>
+            <span>• ${h.units.toFixed(4)} unit</span>
+          </div>
+          <div style="font-size:12px;color:var(--text3);margin-top:4px;">Modal: Rp ${formatNum(h.invested)}</div>
+        </div>
+        <div class="pi-value">
+          <div class="pi-amount" id="pi-val-${fid}">Rp ${formatNum(curr)}</div>
+          <div class="pi-return ${pct >= 0 ? 'text-green' : 'text-red'}" id="pi-ret-${fid}">${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%</div>
+          <div style="margin-top:8px;display:flex;gap:6px;">
+            <button class="btn-sm" onclick="openBuy('${fid}')">+ Beli</button>
+            <button onclick="openSell('${fid}')" style="padding:7px 14px;background:transparent;border:1px solid var(--border2);border-radius:8px;color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;transition:all 0.2s;font-family:'DM Sans',sans-serif;" onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text2)'">Jual</button>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+//  RENDER SALDO
+// ═══════════════════════════════════════════════════════
+function renderSaldo() {
+  const user = getUser(currentUser);
+  document.getElementById('saldoAmount').textContent = 'Rp ' + formatNum(user.balance);
+  const txs = (user.transactions || []).slice().reverse();
+  const topups = txs.filter(t => t.type === 'topup').reduce((a,t) => a + t.amount, 0);
+  const buys = txs.filter(t => t.type === 'beli').reduce((a,t) => a + t.amount, 0);
+  const sells = txs.filter(t => t.type === 'jual').reduce((a,t) => a + t.amount, 0);
+  document.getElementById('txStats').innerHTML = `
+    <div class="lot-display"><span class="ld-label">Total Top Up</span><span class="ld-val text-green">Rp ${formatNum(topups)}</span></div>
+    <div class="lot-display"><span class="ld-label">Total Pembelian</span><span class="ld-val text-red">- Rp ${formatNum(buys)}</span></div>
+    <div class="lot-display"><span class="ld-label">Total Penjualan</span><span class="ld-val text-green">+ Rp ${formatNum(sells)}</span></div>
+    <div class="lot-display"><span class="ld-label">Jumlah Transaksi</span><span class="ld-val">${txs.length}x</span></div>
+  `;
+  filterTx(txFilter);
+}
+
+function filterTx(type, btnEl) {
+  txFilter = type;
+  document.querySelectorAll('#view-saldo .filter-tab').forEach(b => b.classList.toggle('active', b === btnEl || (!btnEl && b.getAttribute('onclick').includes("'" + type + "'"))));
+  const user = getUser(currentUser);
+  const txs = (user.transactions || []).slice().reverse();
+  const filtered = type === 'all' ? txs : txs.filter(t => t.type === type);
+  const el = document.getElementById('txList');
+  if (!filtered.length) { el.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">Tidak ada transaksi</div>'; return; }
+  el.innerHTML = filtered.map(tx => txRow(tx)).join('');
+}
+
+function txRow(tx) {
+  const icons = { topup: '💳', beli: '🛒', jual: '💸' };
+  const colors = { topup: 'text-green', beli: 'text-red', jual: 'text-green' };
+  const labels = { topup: 'Top Up', beli: 'Beli', jual: 'Jual' };
+  const signs = { topup: '+', beli: '-', jual: '+' };
+  const d = new Date(tx.date);
+  const dateStr = d.toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' }) + ' ' + d.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
+  return `
+    <div class="portfolio-item" style="padding:12px 16px;">
+      <div class="pi-icon" style="background:var(--bg3);width:36px;height:36px;border-radius:9px;font-size:16px;">${icons[tx.type] || '📋'}</div>
+      <div class="pi-info">
+        <div class="pi-name" style="font-size:13px;">${tx.note || labels[tx.type]}</div>
+        <div class="pi-sub" style="font-size:11px;">${dateStr}</div>
+      </div>
+      <div class="pi-value">
+        <div class="${colors[tx.type]} font-mono" style="font-size:14px;">${signs[tx.type]}Rp ${formatNum(tx.amount)}</div>
+        <div class="tag tag-green text-xs mt-4" style="float:right;">${tx.status || 'sukses'}</div>
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════
+//  RENDER PRODUCT LISTS
+// ═══════════════════════════════════════════════════════
+function renderProductLists() {
+  ['pasar-uang', 'obligasi', 'saham'].forEach(type => {
+    const elId = 'list' + type.replace('-', '').replace('s', 'S').replace('p', 'P').replace('o', 'O');
+    const ids = { 'pasar-uang': 'listPasarUang', 'obligasi': 'listObligasi', 'saham': 'listSaham' };
+    const el = document.getElementById(ids[type]);
+    if (!el) return;
+    const funds = Object.values(FUNDS).filter(f => f.type === type);
+    el.innerHTML = funds.map(f => productCard(f)).join('');
+  });
+}
+
+function productCard(f) {
+  const riskColor = { 'Rendah': 'tag-green', 'Menengah': 'tag-gold', 'Menengah-Tinggi': 'tag-gold', 'Tinggi': 'tag-red', 'Sangat Tinggi': 'tag-red' };
+  return `
+    <div class="product-card" style="--card-accent1:${f.accent1};--card-accent2:${f.accent2};">
+      <div class="p-type">${f.type === 'pasar-uang' ? 'Pasar Uang' : f.type === 'obligasi' ? 'Obligasi' : 'Saham'}</div>
+      <div class="p-name">${f.name}</div>
+      <div class="p-mngr">${f.manager}</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.5;">${f.desc}</div>
+      <div style="border-top:1px solid var(--border);margin:0 -24px;padding:16px 24px 0;">
+        <div class="flex flex-between flex-center mb-8">
+          <div>
+            <div style="font-size:11px;color:var(--text3);">NAV / unit</div>
+            <div class="p-nav" style="font-size:20px;" id="nav-${f.id}">Rp ${formatNum(f.nav)}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:11px;color:var(--text3);">Return 1Y</div>
+            <div class="p-return text-green" style="font-size:16px;">+${f.return1y}%</div>
+          </div>
+        </div>
+        <div class="p-meta">
+          <span class="tag ${riskColor[f.risk] || 'tag-gold'}">${f.risk}</span>
+          <span class="tag tag-blue">Min Rp ${formatNum(f.minBuy)}</span>
+          <span class="tag" style="background:var(--bg3);color:var(--text2);border:1px solid var(--border);">AUM ${formatAUM(f.aum)}</span>
+        </div>
+        <div style="margin-top:16px;display:flex;gap:8px;">
+          <button class="btn-gold" style="margin-top:0;flex:1;" onclick="openBuy('${f.id}')">🛒 Beli Sekarang</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════
+//  BUY / SELL
+// ═══════════════════════════════════════════════════════
+function openBuy(fundId) {
+  currentFundId = fundId;
+  const f = FUNDS[fundId];
+  const user = getUser(currentUser);
+  document.getElementById('modalBuyType').textContent = f.type === 'pasar-uang' ? 'Pasar Uang' : f.type === 'obligasi' ? 'Obligasi' : 'Saham';
+  document.getElementById('modalBuyIcon').textContent = f.icon;
+  document.getElementById('modalBuyName').textContent = f.name;
+  document.getElementById('modalBuyNav').textContent = 'NAV: Rp ' + formatNum(f.nav) + ' / unit';
+  document.getElementById('modalBuyReturn').textContent = '+' + f.return1y + '%';
+  document.getElementById('buyBalance').textContent = 'Rp ' + formatNum(user.balance);
+  document.getElementById('buyAmount').value = '';
+  document.getElementById('buyLots').textContent = '0.00 unit';
+  document.getElementById('buyError').style.display = 'none';
+  openModal('modalBuy');
+}
+
+function calcLots() {
+  const amt = parseFloat(document.getElementById('buyAmount').value) || 0;
+  const nav = getCurrentNav(currentFundId);
+  const units = amt / nav;
+  document.getElementById('buyLots').textContent = units.toFixed(4) + ' unit';
+}
+
+function confirmBuy() {
+  const amt = parseFloat(document.getElementById('buyAmount').value) || 0;
+  const f = FUNDS[currentFundId];
+  const errEl = document.getElementById('buyError');
+  errEl.style.display = 'none';
+  if (amt < f.minBuy) { errEl.textContent = 'Minimal pembelian Rp ' + formatNum(f.minBuy); errEl.style.display = 'block'; return; }
+  const user = getUser(currentUser);
+  if (amt > user.balance) { errEl.textContent = 'Saldo tidak cukup. Silakan Top Up terlebih dahulu.'; errEl.style.display = 'block'; return; }
+
+  const nav = getCurrentNav(currentFundId);
+  const units = amt / nav;
+  user.balance -= amt;
+  if (!user.holdings) user.holdings = {};
+  if (!user.holdings[currentFundId]) user.holdings[currentFundId] = { units: 0, invested: 0 };
+  user.holdings[currentFundId].units += units;
+  user.holdings[currentFundId].invested += amt;
+  user.transactions.push({
+    id: 'tx' + Date.now(), type: 'beli', amount: amt,
+    note: 'Beli ' + f.name + ' (' + units.toFixed(4) + ' unit)',
+    fundId: currentFundId, units, nav, date: Date.now(), status: 'sukses'
+  });
+  saveUser(user);
+  closeModal('modalBuy');
+  toast('✅ Pembelian berhasil! ' + units.toFixed(4) + ' unit ' + f.name, 'success');
+  refreshBalanceUI();
+}
+
+function openSell(fundId) {
+  currentFundId = fundId;
+  const f = FUNDS[fundId];
+  const user = getUser(currentUser);
+  const h = (user.holdings || {})[fundId] || { units: 0 };
+  document.getElementById('modalSellType').textContent = f.type === 'pasar-uang' ? 'Pasar Uang' : f.type === 'obligasi' ? 'Obligasi' : 'Saham';
+  document.getElementById('modalSellIcon').textContent = f.icon;
+  document.getElementById('modalSellName').textContent = f.name;
+  document.getElementById('modalSellNav').textContent = 'NAV saat ini: Rp ' + formatNum(f.nav);
+  document.getElementById('sellOwnedUnits').textContent = h.units.toFixed(4) + ' unit';
+  document.getElementById('sellUnits').value = '';
+  document.getElementById('sellEstimate').textContent = 'Rp 0';
+  document.getElementById('sellError').style.display = 'none';
+  openModal('modalSell');
+}
+
+function calcSellAmount() {
+  const units = parseFloat(document.getElementById('sellUnits').value) || 0;
+  const nav = getCurrentNav(currentFundId);
+  document.getElementById('sellEstimate').textContent = 'Rp ' + formatNum(units * nav);
+}
+
+function confirmSell() {
+  const units = parseFloat(document.getElementById('sellUnits').value) || 0;
+  const f = FUNDS[currentFundId];
+  const errEl = document.getElementById('sellError');
+  errEl.style.display = 'none';
+  const user = getUser(currentUser);
+  const h = (user.holdings || {})[currentFundId] || { units: 0 };
+  if (units <= 0) { errEl.textContent = 'Masukkan jumlah unit.'; errEl.style.display = 'block'; return; }
+  if (units > h.units) { errEl.textContent = 'Unit tidak cukup. Anda hanya punya ' + h.units.toFixed(4) + ' unit.'; errEl.style.display = 'block'; return; }
+
+  const nav = getCurrentNav(currentFundId);
+  const proceeds = units * nav;
+  const unitRatio = units / h.units;
+  const modalSold = h.invested * unitRatio;
+
+  user.balance += proceeds;
+  user.holdings[currentFundId].units -= units;
+  user.holdings[currentFundId].invested -= modalSold;
+  user.transactions.push({
+    id: 'tx' + Date.now(), type: 'jual', amount: proceeds,
+    note: 'Jual ' + f.name + ' (' + units.toFixed(4) + ' unit)',
+    fundId: currentFundId, units, nav, date: Date.now(), status: 'sukses'
+  });
+  saveUser(user);
+  closeModal('modalSell');
+  toast('💸 Penjualan berhasil! Rp ' + formatNum(proceeds) + ' masuk ke saldo.', 'success');
+  refreshBalanceUI();
+  renderPortfolio();
+}
+
+// ═══════════════════════════════════════════════════════
+//  TOP UP
+// ═══════════════════════════════════════════════════════
+function setTopup(amt) { document.getElementById('topupAmount').value = amt; }
+function confirmTopup() {
+  const amt = parseFloat(document.getElementById('topupAmount').value) || 0;
+  if (amt < 10000) { toast('Minimal top up Rp 10.000', 'error'); return; }
+  const user = getUser(currentUser);
+  user.balance += amt;
+  user.transactions.push({
+    id: 'tx' + Date.now(), type: 'topup', amount: amt,
+    note: 'Top Up Saldo', date: Date.now(), status: 'sukses'
+  });
+  saveUser(user);
+  closeModal('modalTopup');
+  toast('💳 Top Up Rp ' + formatNum(amt) + ' berhasil!', 'success');
+  refreshBalanceUI();
+}
+
+// ═══════════════════════════════════════════════════════
+//  ADMIN
+// ═══════════════════════════════════════════════════════
+function renderAdmin() {
+  const db = getDB();
+  const investors = db.users.filter(u => u.role !== 'admin');
+  document.getElementById('adminTotalUsers').textContent = investors.length;
+
+  let totalAUM = 0, totalTx = 0;
+  db.users.forEach(u => {
+    totalTx += (u.transactions || []).length;
+    Object.entries(u.holdings || {}).forEach(([fid, h]) => {
+      totalAUM += h.units * getCurrentNav(fid);
+    });
+  });
+  document.getElementById('adminAUM').textContent = 'Rp ' + formatNum(totalAUM);
+  document.getElementById('adminTxCount').textContent = totalTx;
+  renderAdminUsers();
+  renderAdminTx();
+}
+
+function renderAdminUsers() {
+  const db = getDB();
+  const q = (document.getElementById('adminSearch')?.value || '').toLowerCase();
+  const tbody = document.getElementById('adminUsersTable');
+  const users = db.users.filter(u => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q));
+  tbody.innerHTML = users.map(u => {
+    let totalInvest = 0;
+    Object.entries(u.holdings || {}).forEach(([fid, h]) => { totalInvest += h.units * getCurrentNav(fid); });
+    return `<tr>
+      <td><div class="fw-600">${u.name}</div><div class="text-xs text-muted">${u.role}</div></td>
+      <td class="text-sm">${u.email}</td>
+      <td class="td-mono">Rp ${formatNum(u.balance)}</td>
+      <td class="td-mono">Rp ${formatNum(totalInvest)}</td>
+      <td><span class="tag ${u.active ? 'tag-green' : 'tag-red'}">${u.active ? 'Aktif' : 'Nonaktif'}</span></td>
+      <td>
+        ${u.role !== 'admin' ? `<button class="btn-danger" onclick="toggleUser('${u.id}')" style="font-size:12px;padding:6px 12px;">${u.active ? 'Nonaktifkan' : 'Aktifkan'}</button>` : '<span class="text-xs text-muted">—</span>'}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function toggleUser(uid) {
+  const db = getDB();
+  const u = db.users.find(x => x.id === uid);
+  u.active = !u.active;
+  saveDB(db);
+  toast(u.active ? '✅ Akun diaktifkan' : '🚫 Akun dinonaktifkan', 'success');
+  renderAdminUsers();
+}
+
+function renderAdminTx() {
+  const db = getDB();
+  const allTx = [];
+  db.users.forEach(u => {
+    (u.transactions || []).forEach(tx => allTx.push({ ...tx, userName: u.name }));
+  });
+  allTx.sort((a,b) => b.date - a.date);
+  const tbody = document.getElementById('adminTxTable');
+  tbody.innerHTML = allTx.slice(0, 50).map(tx => {
+    const icons = { topup: '💳', beli: '🛒', jual: '💸' };
+    const labels = { topup: 'Top Up', beli: 'Pembelian', jual: 'Penjualan' };
+    const d = new Date(tx.date);
+    const ds = d.toLocaleDateString('id-ID',{day:'2-digit',month:'short'}) + ' ' + d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    const fund = tx.fundId ? FUNDS[tx.fundId]?.name : '—';
+    return `<tr>
+      <td class="text-sm text-muted">${ds}</td>
+      <td class="fw-600 text-sm">${tx.userName}</td>
+      <td><span class="tag ${tx.type==='topup'?'tag-blue':tx.type==='beli'?'tag-red':'tag-green'}">${icons[tx.type]||''} ${labels[tx.type]||tx.type}</span></td>
+      <td class="text-sm">${fund}</td>
+      <td class="td-mono">Rp ${formatNum(tx.amount)}</td>
+      <td><span class="tag tag-green">${tx.status||'sukses'}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+//  MODAL HELPERS
+// ═══════════════════════════════════════════════════════
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+// Click outside closes
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+});
+
+// ═══════════════════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════════════════
+function toast(msg, type = 'success') {
+  const container = document.getElementById('toastContainer');
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.innerHTML = `<span class="toast-icon">${type === 'success' ? '✅' : '❌'}</span><span>${msg}</span>`;
+  container.appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; el.style.transform = 'translateX(20px)'; el.style.transition = 'all 0.3s'; setTimeout(() => el.remove(), 300); }, 3500);
+}
+
+// ═══════════════════════════════════════════════════════
+//  FORMATTERS
+// ═══════════════════════════════════════════════════════
+function formatNum(n) {
+  if (n === undefined || n === null || isNaN(n)) return '0';
+  return Math.abs(n).toLocaleString('id-ID', { maximumFractionDigits: 0 });
+}
+function formatAUM(n) {
+  if (n >= 1e12) return (n/1e12).toFixed(1) + 'T';
+  if (n >= 1e9) return (n/1e9).toFixed(1) + 'M';
+  if (n >= 1e6) return (n/1e6).toFixed(1) + 'jt';
+  return formatNum(n);
+}
+
+// ═══════════════════════════════════════════════════════
+//  CHART.JS LOADER
+// ═══════════════════════════════════════════════════════
+(function loadChartJS() {
+  const s = document.createElement('script');
+  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js';
+  s.onload = () => console.log('Chart.js loaded');
+  document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>
