@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dana Pintar — Platform Reksadana Digital</title>
+  <meta name="description" content="Investasi reksadana mudah, aman, dan menguntungkan bersama Dana Pintar.">
+  <meta name="theme-color" content="#080c18">
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="apple-touch-icon" href="assets/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/auth.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/animations.css">
+</head>
+<body>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- MODAL BELI -->
+<div class="modal-overlay" id="modalBuy">
+  <div class="modal">
+    <div class="modal-header">
+      <div><div class="modal-title">Beli Reksadana</div><div class="modal-sub" id="modalBuyType">Pasar Uang</div></div>
+      <button class="modal-close" onclick="closeModal('modalBuy')">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      <div class="fund-preview">
+        <div class="fp-icon" id="modalBuyIcon">&#x1F4B0;</div>
+        <div><div class="fp-name" id="modalBuyName">&#x2014;</div><div class="fp-nav" id="modalBuyNav">NAV: &#x2014;</div></div>
+        <div style="margin-left:auto;text-align:right;"><div class="tag tag-green" id="modalBuyReturn">+0%</div><div class="text-xs text-muted mt-4">1Y Return</div></div>
+      </div>
+      <div class="input-group">
+        <label>Nominal Investasi (Rp)</label>
+        <input type="number" id="buyAmount" placeholder="100000" min="10000" step="10000" oninput="calcLots()">
+        <span class="input-suffix">IDR</span>
+      </div>
+      <div class="lot-display"><span class="ld-label">Estimasi Unit</span><span class="ld-val" id="buyLots">0.0000 unit</span></div>
+      <div class="lot-display"><span class="ld-label">Saldo Tersedia</span><span class="ld-val" id="buyBalance">Rp 0</span></div>
+      <div id="buyError" class="error-msg"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('modalBuy')" style="width:auto;padding:13px 24px;">Batal</button>
+      <button class="btn-gold" onclick="confirmBuy()">Konfirmasi Pembelian</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL JUAL -->
+<div class="modal-overlay" id="modalSell">
+  <div class="modal">
+    <div class="modal-header">
+      <div><div class="modal-title">Jual Reksadana</div><div class="modal-sub" id="modalSellType">Pasar Uang</div></div>
+      <button class="modal-close" onclick="closeModal('modalSell')">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      <div class="fund-preview">
+        <div class="fp-icon" id="modalSellIcon">&#x1F4B0;</div>
+        <div><div class="fp-name" id="modalSellName">&#x2014;</div><div class="fp-nav" id="modalSellNav">NAV: &#x2014;</div></div>
+      </div>
+      <div class="input-group">
+        <label>Jumlah Unit yang Dijual</label>
+        <input type="number" id="sellUnits" placeholder="0" min="0" step="0.0001" oninput="calcSellAmount()">
+        <span class="input-suffix">unit</span>
+      </div>
+      <div class="lot-display"><span class="ld-label">Unit Dimiliki</span><span class="ld-val" id="sellOwnedUnits">0.0000 unit</span></div>
+      <div class="lot-display"><span class="ld-label">Estimasi Diterima</span><span class="ld-val" id="sellEstimate">Rp 0</span></div>
+      <div id="sellError" class="error-msg"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('modalSell')" style="width:auto;padding:13px 24px;">Batal</button>
+      <button class="btn-gold" onclick="confirmSell()">Konfirmasi Penjualan</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL TOPUP -->
+<div class="modal-overlay" id="modalTopup">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Top Up Saldo</div>
+      <button class="modal-close" onclick="closeModal('modalTopup')">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      <div class="input-group">
+        <label>Nominal Top Up (Rp)</label>
+        <input type="number" id="topupAmount" placeholder="500000" min="10000">
+        <span class="input-suffix">IDR</span>
+      </div>
+      <div class="quick-amounts">
+        <button class="quick-btn" onclick="setTopup(500000)">500rb</button>
+        <button class="quick-btn" onclick="setTopup(1000000)">1jt</button>
+        <button class="quick-btn" onclick="setTopup(5000000)">5jt</button>
+        <button class="quick-btn" onclick="setTopup(10000000)">10jt</button>
+        <button class="quick-btn" onclick="setTopup(25000000)">25jt</button>
+        <button class="quick-btn" onclick="setTopup(50000000)">50jt</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('modalTopup')" style="width:auto;padding:13px 24px;">Batal</button>
+      <button class="btn-gold" onclick="confirmTopup()">Top Up Sekarang</button>
+    </div>
+  </div>
+</div>
+
+<!-- AUTH PAGE -->
+<div id="page-auth" class="page active">
+  <div class="auth-orb"></div>
+  <div class="auth-wrap">
+    <div class="auth-brand">
+      <div class="brand-logo-wrap">
+        <img src="assets/logo.png" alt="Dana Pintar" class="brand-logo-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <div class="brand-icon" style="display:none;">&#x1F4C8;</div>
+      </div>
+      <h1>Dana Pintar</h1>
+      <p>Platform Reksadana Digital Terpercaya</p>
+    </div>
+    <div class="auth-card">
+      <div class="auth-tabs">
+        <button class="auth-tab active" onclick="switchAuthTab('login')">Masuk</button>
+        <button class="auth-tab" onclick="switchAuthTab('register')">Daftar</button>
+      </div>
+      <div class="auth-form active" id="form-login">
+        <div class="error-msg" id="loginError"></div>
+        <div class="success-msg" id="loginSuccess"></div>
+        <div class="form-group"><label>Email</label><input type="email" id="loginEmail" placeholder="nama@email.com" onkeydown="if(event.key==='Enter')doLogin()"></div>
+        <div class="form-group"><label>Password</label><input type="password" id="loginPass" placeholder="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;" onkeydown="if(event.key==='Enter')doLogin()"></div>
+        <button class="btn-gold" onclick="doLogin()">Masuk ke Akun</button>
+        <div class="demo-hint">Belum punya akun? Klik <strong>Daftar</strong> di atas.</div>
+      </div>
+      <div class="auth-form" id="form-register">
+        <div class="error-msg" id="regError"></div>
+        <div class="success-msg" id="regSuccess"></div>
+        <div class="form-row">
+          <div class="form-group"><label>Nama Depan</label><input type="text" id="regFirst" placeholder="Budi"></div>
+          <div class="form-group"><label>Nama Belakang</label><input type="text" id="regLast" placeholder="Santoso"></div>
+        </div>
+        <div class="form-group"><label>Email</label><input type="email" id="regEmail" placeholder="nama@email.com"></div>
+        <div class="form-group"><label>No. HP</label><input type="text" id="regPhone" placeholder="08xx-xxxx-xxxx"></div>
+        <div class="form-group"><label>Password</label><input type="password" id="regPass" placeholder="Minimal 6 karakter"></div>
+        <button class="btn-gold" onclick="doRegister()">Buat Akun Gratis</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- APP PAGE -->
+<div id="page-app" class="page">
+  <div class="ticker-bar">
+    <span class="ticker-label">LIVE</span>
+    <div class="ticker-scroll"><div class="ticker-track" id="tickerTrack"></div></div>
+  </div>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <img src="assets/logo.png" alt="Dana Pintar" class="sidebar-logo-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <div class="brand-icon-sm" style="display:none;">&#x1F4C8;</div>
+        <h2>Dana Pintar</h2>
+      </div>
+      <div class="sidebar-user">
+        <div class="su-avatar" id="sidebarAvatar">U</div>
+        <div class="su-info"><div class="su-name" id="sidebarName">Memuat...</div><div class="su-role" id="sidebarRole">Investor</div></div>
+      </div>
+      <div class="sidebar-balance">
+        <div class="sb-label">Saldo Tersedia</div>
+        <div class="sb-amount" id="sidebarBalance">Rp 0</div>
+        <button class="sb-topup" onclick="openModal('modalTopup')">+ Top Up</button>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-label">Menu Utama</div>
+          <button class="nav-item active" data-view="dashboard" onclick="switchView('dashboard')"><span class="nav-icon">&#x1F3E0;</span><span>Dashboard</span></button>
+          <button class="nav-item" data-view="portfolio" onclick="switchView('portfolio')"><span class="nav-icon">&#x1F4BC;</span><span>Portofolio</span></button>
+          <button class="nav-item" data-view="saldo" onclick="switchView('saldo')"><span class="nav-icon">&#x1F4B3;</span><span>Saldo &amp; Transaksi</span></button>
+        </div>
+        <div class="nav-section">
+          <div class="nav-label">Produk Investasi</div>
+          <button class="nav-item" data-view="pasar-uang" onclick="switchView('pasar-uang')"><span class="nav-icon">&#x1F4A7;</span><span>Pasar Uang</span></button>
+          <button class="nav-item" data-view="obligasi" onclick="switchView('obligasi')"><span class="nav-icon">&#x1F3DB;&#xFE0F;</span><span>Obligasi</span></button>
+          <button class="nav-item" data-view="saham" onclick="switchView('saham')"><span class="nav-icon">&#x1F4CA;</span><span>Saham</span></button>
+        </div>
+        <div class="nav-section" id="navAdmin" style="display:none;">
+          <div class="nav-label">Administrasi</div>
+          <button class="nav-item" data-view="admin" onclick="switchView('admin')"><span class="nav-icon">&#x2699;&#xFE0F;</span><span>Panel Admin</span></button>
+        </div>
+      </nav>
+      <div class="sidebar-footer">
+        <button class="btn-logout" onclick="doLogout()">&#x1F6AA; Keluar</button>
+      </div>
+    </aside>
+    <main class="main-content">
+      <div class="view active" id="view-dashboard">
+        <div class="topbar">
+          <div><div class="topbar-bc">Dana Pintar / <span>Dashboard</span></div><div class="topbar-title" id="dashGreet">Selamat datang!</div></div>
+          <div class="topbar-right"><div class="topbar-balance" id="topbarBalance">Rp 0</div><div class="topbar-notif">&#x1F514;<div class="notif-dot"></div></div></div>
+        </div>
+        <div class="view-body" id="viewDashboard"><div class="loading-wrap"><div class="spinner"></div><span>Memuat dashboard...</span></div></div>
+      </div>
+      <div class="view" id="view-portfolio">
+        <div class="topbar"><div><div class="topbar-bc">Dana Pintar / <span>Portofolio</span></div><div class="topbar-title">Portofolio Saya</div></div></div>
+        <div class="view-body" id="viewPortfolio"><div class="loading-wrap"><div class="spinner"></div><span>Memuat portofolio...</span></div></div>
+      </div>
+      <div class="view" id="view-saldo">
+        <div class="topbar"><div><div class="topbar-bc">Dana Pintar / <span>Saldo</span></div><div class="topbar-title">Saldo &amp; Transaksi</div></div><div class="topbar-right"><button class="btn-sm" onclick="openModal('modalTopup')">+ Top Up</button></div></div>
+        <div class="view-body" id="viewSaldo"><div class="loading-wrap"><div class="spinner"></div><span>Memuat transaksi...</span></div></div>
+      </div>
+      <div class="view" id="view-pasar-uang">
+        <div class="topbar"><div><div class="topbar-bc">Dana Pintar / Produk / <span>Pasar Uang</span></div><div class="topbar-title">Reksadana Pasar Uang</div></div></div>
+        <div class="view-body"><p class="view-desc">Produk likuid dengan imbal hasil stabil. Cocok untuk dana darurat dan investasi jangka pendek dengan risiko minimal.</p><div class="product-grid" id="listPasarUang"><div class="loading-wrap"><div class="spinner"></div></div></div></div>
+      </div>
+      <div class="view" id="view-obligasi">
+        <div class="topbar"><div><div class="topbar-bc">Dana Pintar / Produk / <span>Obligasi</span></div><div class="topbar-title">Reksadana Obligasi</div></div></div>
+        <div class="view-body"><p class="view-desc">Investasi pendapatan tetap dengan eksposur ke obligasi pemerintah dan korporasi berperingkat tinggi.</p><div class="product-grid" id="listObligasi"><div class="loading-wrap"><div class="spinner"></div></div></div></div>
+      </div>
+      <div class="view" id="view-saham">
+        <div class="topbar"><div><div class="topbar-bc">Dana Pintar / Produk / <span>Saham</span></div><div class="topbar-title">Reksadana Saham</div></div></div>
+        <div class="view-body"><p class="view-desc">Potensi return tertinggi untuk investor dengan horizon jangka panjang dan toleransi risiko tinggi.</p><div class="product-grid" id="listSaham"><div class="loading-wrap"><div class="spinner"></div></div></div></div>
+      </div>
+      <div class="view" id="view-admin">
+        <div class="topbar"><div><div class="topbar-bc">Dana Pintar / <span>Admin</span></div><div class="topbar-title">Panel Administrasi</div></div></div>
+        <div class="view-body" id="viewAdmin"><div class="loading-wrap"><div class="spinner"></div><span>Memuat panel admin...</span></div></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="js/supabase.js"></script>
+<script src="js/data.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/portfolio.js"></script>
+<script src="js/products.js"></script>
+<script src="js/transactions.js"></script>
+<script src="js/dashboard.js"></script>
+<script src="js/ticker.js"></script>
+<script src="js/admin.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
