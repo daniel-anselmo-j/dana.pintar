@@ -161,10 +161,6 @@
   </button>
   <!-- Sidebar overlay -->
   <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeMobileSidebar()"></div>
-  <div class="ticker-bar">
-    <span class="ticker-label">LIVE</span>
-    <div class="ticker-scroll"><div class="ticker-track" id="tickerTrack"></div></div>
-  </div>
   <div class="app-layout">
     <aside class="sidebar">
       <button class="sidebar-close-btn" onclick="closeMobileSidebar()" aria-label="Tutup menu">&#x2715;</button>
@@ -201,6 +197,11 @@
         </div>
       </nav>
       <div class="sidebar-footer">
+        <!-- Ticker inside sidebar -->
+        <div class="ticker-bar">
+          <span class="ticker-label">LIVE</span>
+          <div class="ticker-scroll"><div class="ticker-track" id="tickerTrack"></div></div>
+        </div>
         <button class="btn-logout" onclick="doLogout()">&#x1F6AA; Keluar</button>
       </div>
     </aside>
