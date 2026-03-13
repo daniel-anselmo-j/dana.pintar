@@ -14,7 +14,7 @@ async function renderAdmin() {
 
   // Fetch semua data tanpa join (hindari error RLS)
   const [profilesRes, txsRes, holdingsRes] = await Promise.all([
-    sb.from('profiles').select('id, full_name, email, balance, role, is_active, created_at').neq('role', 'admin'),
+    sb.from('profiles').select('id, full_name, balance, role, is_active, created_at').neq('role', 'admin'),
     sb.from('transactions').select('id, user_id, type, amount, fund_id, status, created_at').order('created_at', { ascending: false }).limit(100),
     sb.from('holdings').select('user_id, fund_id, units'),
   ]);
@@ -64,7 +64,7 @@ async function renderAdmin() {
       <div class="table-wrap" style="margin-top:12px;">
         <table>
           <thead><tr>
-            <th>Nama</th><th>Email</th><th>Saldo</th><th>Status</th><th>Aksi</th>
+            <th>Nama</th><th>Saldo</th><th>Status</th><th>Aksi</th>
           </tr></thead>
           <tbody id="adminUsersBody"></tbody>
         </table>
@@ -110,7 +110,7 @@ function renderAdminUsersTable(profiles) {
   tbody.innerHTML = profiles.map(p => `
     <tr>
       <td><div class="fw-600">${p.full_name || '-'}</div></td>
-      <td class="text-muted text-sm">${p.email || '-'}</td>
+      
       <td class="td-mono">Rp ${fmtInt(p.balance)}</td>
       <td><span class="tag ${p.is_active ? 'tag-green' : 'tag-red'}">${p.is_active ? 'Aktif' : 'Nonaktif'}</span></td>
       <td>

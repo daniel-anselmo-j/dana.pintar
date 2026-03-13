@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════
-//  js/charts.js — Chart.js Wrappers
+//  js/charts.js — Chart.js Wrappers (fixed height)
 // ═══════════════════════════════════════════════════════════
 
 window.charts = {};
@@ -11,28 +11,38 @@ function destroyChart(key) {
   }
 }
 
-// ── Line chart: portfolio performance (30 hari) ─────────
-function renderDashLineChart(currentTotal, balance) {
+// ── Line chart ───────────────────────────────────────────
+function renderDashLineChart(currentTotal) {
   destroyChart('dashLine');
   const canvas = document.getElementById('dashLineChart');
   if (!canvas) return;
 
-  // FIX: set explicit pixel height supaya tidak memanjang ke bawah
-  const wrapper = canvas.parentElement;
-  canvas.style.height = '200px';
-  canvas.style.maxHeight = '200px';
-  canvas.style.width = '100%';
+  // Kunci ukuran canvas secara eksplisit SEBELUM Chart.js init
+  const parent = canvas.parentElement;
+  const W = parent.offsetWidth  || 400;
+  const H = 200;
+  canvas.width  = W;
+  canvas.height = H;
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
+  canvas.style.display = 'block';
 
-  const base = currentTotal > 0 ? currentTotal * 0.82 : 1000000;
+  // Generate data 30 hari
+  const base   = currentTotal > 0 ? currentTotal * 0.80 : 1000000;
   const labels = [], data = [];
   let val = base;
   for (let i = 29; i >= 0; i--) {
     const d = new Date(); d.setDate(d.getDate() - i);
     labels.push(d.getDate() + '/' + (d.getMonth() + 1));
-    val = Math.max(base * 0.6, val * (1 + (Math.random() - 0.44) * 0.028));
+    val = Math.max(base * 0.6, val * (1 + (Math.random() - 0.44) * 0.025));
     data.push(Math.round(val));
   }
   if (currentTotal > 0) data[data.length - 1] = Math.round(currentTotal);
+
+  const ctx = canvas.getContext('2d');
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0,   'rgba(201,168,76,0.22)');
+  grad.addColorStop(1,   'rgba(201,168,76,0.00)');
 
   window.charts.dashLine = new Chart(canvas, {
     type: 'line',
@@ -41,14 +51,7 @@ function renderDashLineChart(currentTotal, balance) {
       datasets: [{
         data,
         borderColor: '#c9a84c',
-        backgroundColor: function(ctx) {
-          const c = ctx.chart.ctx;
-          if (!c) return 'transparent';
-          const g = c.createLinearGradient(0, 0, 0, 200);
-          g.addColorStop(0,   'rgba(201,168,76,0.20)');
-          g.addColorStop(1,   'rgba(201,168,76,0.00)');
-          return g;
-        },
+        backgroundColor: grad,
         fill: true,
         tension: 0.42,
         pointRadius: 0,
@@ -58,27 +61,28 @@ function renderDashLineChart(currentTotal, balance) {
       }]
     },
     options: {
-      responsive: true,
+      responsive: false,          // ← KUNCI: matikan responsive resize
       maintainAspectRatio: false,
+      animation: false,           // ← tidak perlu animasi
+      layout: { padding: { top: 6, right: 4, bottom: 2, left: 4 } },
       interaction: { mode: 'index', intersect: false },
-      animation: { duration: 600 },
-      layout: { padding: { top: 8, bottom: 4 } },
       scales: {
         x: {
-          grid: { color: 'rgba(255,255,255,0.04)', drawBorder: false },
-          ticks: {
+          grid:   { color: 'rgba(255,255,255,0.04)', drawBorder: false },
+          border: { display: false },
+          ticks:  {
             color: '#48587a',
-            font: { size: 10, family: 'DM Mono' },
+            font:  { size: 10, family: 'DM Mono' },
             maxTicksLimit: 8,
             maxRotation: 0,
           },
-          border: { display: false },
         },
         y: {
-          grid: { color: 'rgba(255,255,255,0.04)', drawBorder: false },
-          ticks: {
+          grid:   { color: 'rgba(255,255,255,0.04)', drawBorder: false },
+          border: { display: false },
+          ticks:  {
             color: '#48587a',
-            font: { size: 10, family: 'DM Mono' },
+            font:  { size: 10, family: 'DM Mono' },
             maxTicksLimit: 5,
             callback: v => {
               if (v >= 1e9) return 'Rp' + (v/1e9).toFixed(1) + 'M';
@@ -87,8 +91,7 @@ function renderDashLineChart(currentTotal, balance) {
               return 'Rp' + v;
             }
           },
-          border: { display: false },
-        }
+        },
       },
       plugins: {
         legend: { display: false },
@@ -108,20 +111,27 @@ function renderDashLineChart(currentTotal, balance) {
   });
 }
 
-// ── Donut chart: asset allocation ───────────────────────
+// ── Donut chart ──────────────────────────────────────────
 function renderAllocChart(holdings) {
   destroyChart('alloc');
   const canvas = document.getElementById('dashDonutChart');
   if (!canvas) return;
 
-  canvas.style.height = '160px';
-  canvas.style.maxHeight = '160px';
-  canvas.style.width = '100%';
+  const parent = canvas.parentElement;
+  const W = parent.offsetWidth || 300;
+  const H = 160;
+  canvas.width  = W;
+  canvas.height = H;
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
+  canvas.style.display = 'block';
 
   const alloc = { 'Pasar Uang': 0, 'Obligasi': 0, 'Saham': 0 };
   (holdings || []).forEach(h => {
-    const f   = h.funds; if (!f) return;
-    const val = parseFloat(h.units) * getCurrentNav(f.id || h.fund_id);
+    const fid = h.fund_id || h.funds?.id;
+    const f   = h.funds || (window.allFunds||[]).find(x => x.id === fid);
+    if (!f) return;
+    const val = parseFloat(h.units) * getCurrentNav(fid);
     if      (f.type === 'pasar-uang') alloc['Pasar Uang'] += val;
     else if (f.type === 'obligasi')   alloc['Obligasi']   += val;
     else                               alloc['Saham']      += val;
@@ -133,7 +143,7 @@ function renderAllocChart(holdings) {
   const legendEl = document.getElementById('allocLegend');
 
   if (!values.length) {
-    if (legendEl) legendEl.innerHTML = '<p class="text-muted text-sm" style="text-align:center;padding:12px;">Belum ada alokasi aset.</p>';
+    if (legendEl) legendEl.innerHTML = '<p style="text-align:center;color:var(--text3);font-size:12px;padding:12px 0;">Belum ada aset.</p>';
     return;
   }
 
@@ -146,14 +156,14 @@ function renderAllocChart(holdings) {
         backgroundColor: COLORS,
         borderColor: '#121c32',
         borderWidth: 4,
-        hoverOffset: 6,
+        hoverOffset: 5,
       }]
     },
     options: {
-      responsive: true,
+      responsive: false,
       maintainAspectRatio: false,
+      animation: false,
       cutout: '68%',
-      animation: { duration: 600 },
       plugins: {
         legend: { display: false },
         tooltip: {
@@ -173,7 +183,7 @@ function renderAllocChart(holdings) {
     legendEl.innerHTML = labels.map((l, i) => `
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div style="display:flex;align-items:center;gap:8px;">
-          <span style="width:9px;height:9px;border-radius:3px;background:${COLORS[i]};display:inline-block;flex-shrink:0;"></span>
+          <span style="width:9px;height:9px;border-radius:3px;background:${COLORS[i]};display:inline-block;"></span>
           <span style="font-size:12px;color:var(--text2);">${l}</span>
         </div>
         <span style="font-size:12px;font-family:'DM Mono',monospace;">${(values[i]/total*100).toFixed(1)}%</span>

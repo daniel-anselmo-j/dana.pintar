@@ -61,11 +61,15 @@ async function renderDashboard() {
     <div class="grid-2 mb-24">
       <div class="card">
         <div class="card-title">Kinerja Portofolio (30 Hari)</div>
-        <canvas id="dashLineChart" height="190"></canvas>
+        <div style="position:relative;height:200px;width:100%;">
+          <canvas id="dashLineChart"></canvas>
+        </div>
       </div>
       <div class="card">
         <div class="card-title">Alokasi Aset</div>
-        <canvas id="dashDonutChart" height="160"></canvas>
+        <div style="position:relative;height:160px;width:100%;">
+          <canvas id="dashDonutChart"></canvas>
+        </div>
         <div id="allocLegend" style="margin-top:14px;display:flex;flex-direction:column;gap:8px;"></div>
       </div>
     </div>
@@ -87,9 +91,14 @@ async function renderDashboard() {
       </div>
     </div>`;
 
-  // Charts
-  renderDashLineChart(total, profile?.balance ?? 0);
-  renderAllocChart(holdings);
+  // Tunggu DOM benar-benar terpaint sebelum init chart
+  // (el.innerHTML baru saja diset, canvas belum punya ukuran)
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      renderDashLineChart(total, profile?.balance ?? 0);
+      renderAllocChart(holdings);
+    });
+  });
 
   // Top funds
   const topFunds = (window.allFunds || [])
