@@ -20,6 +20,7 @@
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/responsive.css">
 </head>
 <body>
 
@@ -154,6 +155,12 @@
 
 <!-- APP PAGE -->
 <div id="page-app" class="page">
+  <!-- Mobile hamburger -->
+  <button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleMobileSidebar()" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
+  <!-- Sidebar overlay -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeMobileSidebar()"></div>
   <div class="ticker-bar">
     <span class="ticker-label">LIVE</span>
     <div class="ticker-scroll"><div class="ticker-track" id="tickerTrack"></div></div>
@@ -244,5 +251,29 @@
 <script src="js/ticker.js?v=1773400867"></script>
 <script src="js/admin.js?v=1773400867"></script>
 <script src="js/app.js?v=1773400867"></script>
+<script>
+/* Mobile sidebar toggle */
+function toggleMobileSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  const btn = document.getElementById('mobileMenuBtn');
+  const isOpen = sidebar.classList.toggle('open');
+  overlay.classList.toggle('open', isOpen);
+  btn.classList.toggle('open', isOpen);
+}
+function closeMobileSidebar() {
+  document.querySelector('.sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('open');
+  document.getElementById('mobileMenuBtn').classList.remove('open');
+}
+/* Close sidebar when nav item is clicked on mobile */
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.nav-item').forEach(function(item) {
+    item.addEventListener('click', function() {
+      if (window.innerWidth <= 768) closeMobileSidebar();
+    });
+  });
+});
+</script>
 </body>
 </html>
