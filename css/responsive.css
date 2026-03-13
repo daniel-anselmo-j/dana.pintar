@@ -39,6 +39,38 @@
 }
 .mobile-menu-btn:hover { border-color: var(--gold); }
 
+/* Hide hamburger when sidebar is open */
+.mobile-menu-btn.open {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.8);
+}
+
+/* Close button inside sidebar (mobile only) */
+.sidebar-close-btn {
+  display: none;
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 32px; height: 32px;
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: var(--text2);
+  transition: all var(--fast);
+  z-index: 101;
+  line-height: 1;
+}
+.sidebar-close-btn:hover {
+  border-color: var(--red);
+  color: var(--red);
+  background: var(--red-dim);
+}
+
 /* Sidebar overlay for mobile */
 .sidebar-overlay {
   display: none;
@@ -109,6 +141,10 @@
     height: 100vh;
     width: 100%;
   }
+
+  /* Show close button inside sidebar on mobile */
+  .sidebar-close-btn { display: flex; }
+  .sidebar { position: fixed; } /* ensure positioning context */
 
   /* Topbar adjustments */
   .topbar {
