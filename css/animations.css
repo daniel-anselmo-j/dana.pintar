@@ -83,3 +83,38 @@
   0%   { opacity:0; transform:translateX(16px); }
   100% { opacity:1; transform:translateX(0); }
 }
+
+/* Ticker pulse dot improvement */
+.ticker-label::before {
+  animation: tickerBlink 1.6s ease-in-out infinite;
+}
+@keyframes tickerBlink {
+  0%, 100% { opacity: 1; box-shadow: 0 0 4px var(--gold2); }
+  50%       { opacity: 0.3; box-shadow: none; }
+}
+
+/* Product card entrance animation */
+.product-card {
+  animation: cardSlideIn 0.3s var(--ease) both;
+}
+@keyframes cardSlideIn {
+  0%   { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Stat value change flash */
+@keyframes flashUpdate {
+  0%   { color: var(--gold2); }
+  50%  { color: var(--green); }
+  100% { color: inherit; }
+}
+.value-updated { animation: flashUpdate 0.6s ease; }
+
+/* Auth error shake */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-6px); }
+  40%       { transform: translateX(6px); }
+  60%       { transform: translateX(-4px); }
+  80%       { transform: translateX(4px); }
+}

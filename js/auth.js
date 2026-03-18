@@ -8,11 +8,16 @@ function switchAuthTab(tab) {
   });
   document.getElementById('form-login').classList.toggle('active',    tab === 'login');
   document.getElementById('form-register').classList.toggle('active', tab === 'register');
-  // Clear errors on tab switch
+  // Clear all messages
   ['loginError','loginSuccess','regError','regSuccess'].forEach(id => {
     const el = document.getElementById(id);
-    if (el) el.style.display = 'none';
+    if (el) { el.style.display = 'none'; el.textContent = ''; }
   });
+  // Focus first input
+  setTimeout(() => {
+    const firstInput = document.querySelector(`#form-${tab} input`);
+    if (firstInput) firstInput.focus();
+  }, 50);
 }
 
 // ── Login ────────────────────────────────────────────────
@@ -27,6 +32,10 @@ async function doLogin() {
     showAuthError('loginError', 'Email dan password wajib diisi.');
     return;
   }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showAuthError('loginError', 'Format email tidak valid.');
+    return;
+  }
 
   btn.textContent = 'Memproses…';
   btn.disabled = true;
@@ -35,12 +44,10 @@ async function doLogin() {
     const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
 
     if (error) {
-      const msg = parseAuthError(error);
-      showAuthError('loginError', msg);
+      showAuthError('loginError', parseAuthError(error));
       return;
     }
 
-    // Cek apakah email belum dikonfirmasi
     if (!data.user) {
       showAuthError('loginError', 'Login gagal. Silakan coba lagi.');
       return;
@@ -93,7 +100,6 @@ async function doRegister() {
           full_name: (first + ' ' + last).trim(),
           phone: phone || '',
         },
-        // Tidak kirim redirect URL supaya tidak butuh email konfirmasi
         emailRedirectTo: undefined,
       }
     });
@@ -103,16 +109,14 @@ async function doRegister() {
       return;
     }
 
-    // Jika email confirmation dimatikan → user langsung ada & bisa login
     if (data?.user && data.user.identities && data.user.identities.length > 0) {
-      // Email confirmation OFF — langsung login
-      showAuthSuccess('regSuccess', 'Akun berhasil dibuat! Mengalihkan ke halaman masuk…');
+      showAuthSuccess('regSuccess', '✅ Akun berhasil dibuat! Mengalihkan ke halaman masuk…');
       setTimeout(() => {
         switchAuthTab('login');
         document.getElementById('loginEmail').value = email;
+        document.getElementById('loginPass').focus();
       }, 1500);
     } else {
-      // Email confirmation ON — user perlu cek email
       showAuthSuccess('regSuccess',
         '📧 Cek email Anda! Link konfirmasi telah dikirim ke ' + email + '. ' +
         'Klik link tersebut lalu kembali untuk masuk.'
@@ -120,11 +124,9 @@ async function doRegister() {
     }
 
   } catch (e) {
-    // Tangani error 500 (SMTP / server error)
-    if (e.message && e.message.includes('500')) {
+    if (e.message && (e.message.includes('500') || e.message.includes('smtp'))) {
       showAuthError('regError',
-        'Server email sedang bermasalah. ' +
-        'Minta admin untuk mematikan "Email Confirmation" di Supabase Dashboard → Authentication → Settings.'
+        'Server email bermasalah. Hubungi admin untuk mengaktifkan akun.'
       );
     } else {
       showAuthError('regError', 'Koneksi gagal: ' + (e.message || 'Coba lagi.'));
@@ -137,37 +139,48 @@ async function doRegister() {
 
 // ── Logout ───────────────────────────────────────────────
 async function doLogout() {
+  // Stop NAV simulation
+  if (window._simInterval) { clearInterval(window._simInterval); window._simInterval = null; }
+  
   await sb.auth.signOut();
   window.currentUser    = null;
   window.currentProfile = null;
   window.allFunds       = [];
   window._holdingsCache = [];
+  window._currentView   = null;
 
+  // Destroy charts
   Object.values(window.charts || {}).forEach(c => { try { c.destroy(); } catch(e){} });
   window.charts = {};
 
   document.getElementById('page-app').classList.remove('active');
   document.getElementById('page-auth').classList.add('active');
+
+  // Reset form fields
+  document.getElementById('loginEmail').value = '';
+  document.getElementById('loginPass').value  = '';
 }
 
 // ── Error helpers ────────────────────────────────────────
 function showAuthError(elId, msg) {
   const el = document.getElementById(elId);
   if (!el) return;
-  el.textContent    = msg;
-  el.style.display  = 'block';
+  el.textContent   = msg;
+  el.style.display = 'block';
+  // Shake animation
+  el.style.animation = 'none';
+  setTimeout(() => { el.style.animation = 'shake 0.4s ease'; }, 10);
 }
 
 function showAuthSuccess(elId, msg) {
   const el = document.getElementById(elId);
   if (!el) return;
-  el.textContent    = msg;
-  el.style.display  = 'block';
+  el.textContent   = msg;
+  el.style.display = 'block';
 }
 
 function parseAuthError(error) {
   const msg = error.message || '';
-  // Terjemahkan pesan error umum Supabase ke Bahasa Indonesia
   if (msg.includes('Invalid login credentials') || msg.includes('invalid_credentials'))
     return 'Email atau password salah.';
   if (msg.includes('Email not confirmed'))

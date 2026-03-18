@@ -125,3 +125,31 @@
 
 .auth-form { display: none; }
 .auth-form.active { display: block; }
+
+/* ── Form group input hints ── */
+.form-hint {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 5px;
+  display: block;
+}
+
+/* ── Auth success/error improved ── */
+.success-msg {
+  background: var(--green-dim);
+  border: 1px solid rgba(45,224,165,0.3);
+  border-radius: var(--r-sm);
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--green);
+  margin-bottom: 14px;
+  display: none;
+  line-height: 1.5;
+}
+
+/* Focus indicator outline for accessibility */
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--gold2);
+  outline-offset: 2px;
+}

@@ -13,7 +13,6 @@ async function renderSaldo() {
   const balance = window.currentProfile?.balance ?? 0;
   if (!uid) return;
 
-  // Fetch transaksi tanpa join (hindari error 500)
   let txs = [];
   try {
     const { data, error } = await sb
@@ -23,7 +22,6 @@ async function renderSaldo() {
       .order('created_at', { ascending: false });
 
     if (!error) {
-      // Gabungkan fund name dari allFunds cache (NO join)
       txs = (data || []).map(tx => ({
         ...tx,
         funds: window.allFunds.find(f => f.id === tx.fund_id) || null,
@@ -36,12 +34,13 @@ async function renderSaldo() {
   const topups = txs.filter(t => t.type === 'topup').reduce((a, t) => a + parseFloat(t.amount), 0);
   const buys   = txs.filter(t => t.type === 'beli' ).reduce((a, t) => a + parseFloat(t.amount), 0);
   const sells  = txs.filter(t => t.type === 'jual' ).reduce((a, t) => a + parseFloat(t.amount), 0);
+  const netFlow = topups - buys + sells;
 
   el.innerHTML = `
     <div class="grid-2 mb-24">
-      <div class="card" style="background:linear-gradient(135deg,rgba(201,168,76,0.07),var(--card));border-color:rgba(201,168,76,0.2);">
-        <div class="card-title" style="color:var(--gold);">Saldo Aktif</div>
-        <div style="font-family:'DM Mono',monospace;font-size:38px;font-weight:500;color:var(--gold2);margin:6px 0 14px;">
+      <div class="card saldo-main-card">
+        <div class="card-title" style="color:var(--gold);">💳 Saldo Aktif</div>
+        <div class="saldo-amount">
           Rp ${fmtInt(balance)}
         </div>
         <p class="text-muted text-sm mb-16">Siap diinvestasikan kapan saja</p>
@@ -50,18 +49,30 @@ async function renderSaldo() {
       <div class="card">
         <div class="card-title">Ringkasan Keuangan</div>
         <div style="display:flex;flex-direction:column;gap:10px;">
-          <div class="lot-display"><span class="ld-label">Total Top Up</span><span class="ld-val text-green">Rp ${fmtInt(topups)}</span></div>
-          <div class="lot-display"><span class="ld-label">Total Pembelian</span><span class="ld-val text-red">- Rp ${fmtInt(buys)}</span></div>
-          <div class="lot-display"><span class="ld-label">Total Penjualan</span><span class="ld-val text-green">+ Rp ${fmtInt(sells)}</span></div>
-          <div class="lot-display"><span class="ld-label">Total Transaksi</span><span class="ld-val">${txs.length}x</span></div>
+          <div class="lot-display">
+            <span class="ld-label">💰 Total Top Up</span>
+            <span class="ld-val text-green">Rp ${fmtInt(topups)}</span>
+          </div>
+          <div class="lot-display">
+            <span class="ld-label">🛒 Total Pembelian</span>
+            <span class="ld-val text-red">− Rp ${fmtInt(buys)}</span>
+          </div>
+          <div class="lot-display">
+            <span class="ld-label">💸 Total Penjualan</span>
+            <span class="ld-val text-green">+ Rp ${fmtInt(sells)}</span>
+          </div>
+          <div class="lot-display" style="border-color:var(--border2);">
+            <span class="ld-label fw-600">📊 Total Transaksi</span>
+            <span class="ld-val fw-600">${txs.length}x</span>
+          </div>
         </div>
       </div>
     </div>
     <div class="card">
       <div class="card-header">
-        <div class="card-title" style="margin-bottom:0;">Riwayat Transaksi</div>
+        <div class="card-title" style="margin-bottom:0;">📋 Riwayat Transaksi</div>
         <div class="filter-tabs" style="margin-bottom:0;">
-          <button class="filter-tab active" onclick="filterTxView('all',this)">Semua</button>
+          <button class="filter-tab active" onclick="filterTxView('all',this)">Semua <span class="tx-count">${txs.length}</span></button>
           <button class="filter-tab" onclick="filterTxView('topup',this)">Top Up</button>
           <button class="filter-tab" onclick="filterTxView('beli',this)">Pembelian</button>
           <button class="filter-tab" onclick="filterTxView('jual',this)">Penjualan</button>
@@ -77,11 +88,11 @@ async function renderSaldo() {
 function filterTxView(type, btnEl) {
   txFilterActive = type;
   document.querySelectorAll('#viewSaldo .filter-tab').forEach(b => {
-    const match = (type === 'all' && b.textContent === 'Semua') ||
-                  (type === 'topup' && b.textContent === 'Top Up') ||
-                  (type === 'beli' && b.textContent === 'Pembelian') ||
-                  (type === 'jual' && b.textContent === 'Penjualan');
-    b.classList.toggle('active', btnEl ? b === btnEl : match);
+    const isMatch = (type === 'all'   && b.textContent.startsWith('Semua')) ||
+                    (type === 'topup' && b.textContent === 'Top Up')         ||
+                    (type === 'beli'  && b.textContent === 'Pembelian')      ||
+                    (type === 'jual'  && b.textContent === 'Penjualan');
+    b.classList.toggle('active', btnEl ? b === btnEl : isMatch);
   });
 
   const filtered = type === 'all'
@@ -90,33 +101,35 @@ function filterTxView(type, btnEl) {
 
   const el = document.getElementById('txListContainer');
   if (!el) return;
+  
   if (!filtered.length) {
-    el.innerHTML = '<div class="empty-state"><div class="empty-icon">&#x1F4CB;</div><p>Tidak ada transaksi.</p></div>';
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><p>Tidak ada transaksi di kategori ini.</p></div>';
     return;
   }
   el.innerHTML = filtered.map(tx => txItemHTML(tx)).join('');
 }
 
 function txItemHTML(tx) {
-  const icons  = { topup: '&#x1F4B3;', beli: '&#x1F6D2;', jual: '&#x1F4B8;' };
+  const icons  = { topup: '💳', beli: '🛒', jual: '💸' };
   const labels = { topup: 'Top Up', beli: 'Pembelian', jual: 'Penjualan' };
   const amtCls = tx.type === 'beli' ? 'text-red' : 'text-green';
-  const sign   = tx.type === 'beli' ? '-' : '+';
+  const sign   = tx.type === 'beli' ? '−' : '+';
   const fundName = tx.funds?.name || (tx.fund_id
     ? (window.allFunds.find(f => f.id === tx.fund_id)?.name || '')
     : '');
-  const note = tx.note || labels[tx.type] + (fundName ? ' \xB7 ' + fundName : '');
+  const note = tx.note || labels[tx.type] + (fundName ? ' · ' + fundName : '');
+  const tagCls = tx.type === 'topup' ? 'tag-blue' : tx.type === 'beli' ? 'tag-red' : 'tag-green';
 
   return `
   <div class="tx-item">
-    <div class="tx-icon">${icons[tx.type] || '&#x1F4CB;'}</div>
+    <div class="tx-icon">${icons[tx.type] || '📋'}</div>
     <div class="tx-info">
       <div class="tx-note">${note}</div>
       <div class="tx-date">${fmtDate(tx.created_at)}</div>
     </div>
-    <div>
+    <div style="text-align:right;flex-shrink:0;">
       <div class="tx-amount ${amtCls}">${sign}Rp ${fmtInt(tx.amount)}</div>
-      <div class="tag tag-green text-xs mt-4" style="float:right;">${tx.status || 'sukses'}</div>
+      <span class="tag ${tagCls} text-xs mt-4">${tx.status || 'sukses'}</span>
     </div>
   </div>`;
 }

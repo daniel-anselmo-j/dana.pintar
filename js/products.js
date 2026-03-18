@@ -15,7 +15,7 @@ function renderProducts(type) {
 
   const funds = (window.allFunds || []).filter(f => f.type === type);
   if (!funds.length) {
-    showEmpty(idMap[type], '&#x1F50D;', 'Produk tidak ditemukan.');
+    showEmpty(idMap[type], '🔍', 'Produk tidak ditemukan.');
     return;
   }
   el.innerHTML = funds.map(f => productCardHTML(f)).join('');
@@ -24,6 +24,8 @@ function renderProducts(type) {
 function productCardHTML(f) {
   const riskCls = RISK_COLOR[f.risk_level] || 'tag-gold';
   const nav     = getCurrentNav(f.id);
+  const returnClass = parseFloat(f.return_1y) >= 0 ? 'text-green' : 'text-red';
+  const returnSign  = parseFloat(f.return_1y) >= 0 ? '+' : '';
   return `
   <div class="product-card">
     <div class="product-card-accent" style="--pc-c1:${f.accent1};--pc-c2:${f.accent2};"></div>
@@ -40,7 +42,7 @@ function productCardHTML(f) {
           </div>
           <div style="text-align:right;">
             <div class="pc-nav-label">Return 1 Tahun</div>
-            <div class="pc-return">+${f.return_1y}%</div>
+            <div class="pc-return ${returnClass}">${returnSign}${f.return_1y}%</div>
           </div>
         </div>
         <div class="pc-meta">
@@ -48,10 +50,26 @@ function productCardHTML(f) {
           <span class="tag tag-blue">Min Rp ${fmtInt(f.min_buy)}</span>
           <span class="tag tag-neutral">AUM ${fmtAUM(f.aum)}</span>
         </div>
-        <button class="pc-buy-btn" onclick="openBuy('${f.id}')">&#x1F6D2; Beli Sekarang</button>
+        <div style="display:flex;gap:8px;">
+          <button class="pc-buy-btn" onclick="openBuy('${f.id}')">🛒 Beli Sekarang</button>
+          <button class="pc-info-btn" onclick="openFundDetail('${f.id}')" title="Detail produk">ℹ️</button>
+        </div>
       </div>
     </div>
   </div>`;
+}
+
+// ── Fund Detail Modal ─────────────────────────────────────
+function openFundDetail(fundId) {
+  const f = (window.allFunds || []).find(x => x.id === fundId);
+  if (!f) return;
+  const nav   = getCurrentNav(fundId);
+  const base  = parseFloat(f.base_nav);
+  const chg   = base > 0 ? ((nav - base) / base * 100) : 0;
+  const chgCls = chg >= 0 ? 'text-green' : 'text-red';
+
+  // Use existing buy modal as detail, or just show info toast
+  toast(`📊 ${f.name} — NAV: Rp ${fmt(nav)} (${chg >= 0 ? '+' : ''}${chg.toFixed(2)}% dari base)`, 'success');
 }
 
 // ── BUY ─────────────────────────────────────────────────
@@ -70,6 +88,7 @@ function openBuy(fundId) {
   document.getElementById('buyAmount').value            = '';
   document.getElementById('buyLots').textContent        = '0.0000 unit';
   document.getElementById('buyError').style.display    = 'none';
+  document.getElementById('buyError').textContent      = '';
   openModal('modalBuy');
 }
 
@@ -78,6 +97,20 @@ function calcLots() {
   const nav   = getCurrentNav(window.currentFundId);
   const units = nav > 0 ? amt / nav : 0;
   document.getElementById('buyLots').textContent = units.toFixed(4) + ' unit';
+  
+  // Live validation hint
+  const f = (window.allFunds || []).find(x => x.id === window.currentFundId);
+  const errEl = document.getElementById('buyError');
+  const bal = window.currentProfile?.balance ?? 0;
+  if (amt > 0 && f && amt < parseFloat(f.min_buy)) {
+    errEl.textContent = `Minimal pembelian Rp ${fmtInt(f.min_buy)}`;
+    errEl.style.display = 'block';
+  } else if (amt > bal) {
+    errEl.textContent = 'Saldo tidak cukup. Silakan Top Up terlebih dahulu.';
+    errEl.style.display = 'block';
+  } else {
+    errEl.style.display = 'none';
+  }
 }
 
 async function confirmBuy() {
@@ -110,7 +143,7 @@ async function confirmBuy() {
       .update({ balance: newBalance }).eq('id', uid);
     if (balErr) throw new Error(balErr.message);
 
-    // 2. Cek holding existing (tanpa join)
+    // 2. Upsert holding
     const { data: existArr } = await sb.from('holdings')
       .select('id, units, invested')
       .eq('user_id', uid)
@@ -140,9 +173,13 @@ async function confirmBuy() {
     window.currentProfile.balance = newBalance;
     cacheInvalidate('profile:');
     closeModal('modalBuy');
-    toast('&#x2705; Berhasil membeli ' + units.toFixed(4) + ' unit ' + f.name, 'success');
+    toast('✅ Berhasil membeli ' + units.toFixed(4) + ' unit ' + f.name, 'success');
     refreshBalanceUI(newBalance);
     await refreshHoldingsCache();
+
+    // Refresh current view if portfolio
+    if (_currentView === 'portfolio') { _currentView = null; renderPortfolio(); }
+    if (_currentView === 'dashboard') { _currentView = null; renderDashboard(); }
 
   } catch(e) {
     errEl.textContent = 'Transaksi gagal: ' + e.message;
@@ -160,7 +197,6 @@ async function openSell(fundId) {
   const nav  = getCurrentNav(fundId);
   const uid  = window.currentUser.id;
 
-  // Fetch holding tanpa join
   const { data: holdingArr } = await sb.from('holdings')
     .select('id, units, invested')
     .eq('user_id', uid)
@@ -178,6 +214,7 @@ async function openSell(fundId) {
   document.getElementById('sellUnits').value            = '';
   document.getElementById('sellEstimate').textContent   = 'Rp 0';
   document.getElementById('sellError').style.display   = 'none';
+  document.getElementById('sellError').textContent     = '';
   openModal('modalSell');
 }
 
@@ -187,11 +224,19 @@ function calcSellAmount() {
   document.getElementById('sellEstimate').textContent = 'Rp ' + fmtInt(units * nav);
 }
 
+// "Jual Semua" helper
+function setSellMax() {
+  const owned = parseFloat(document.getElementById('sellOwnedUnits').textContent) || 0;
+  document.getElementById('sellUnits').value = owned.toFixed(4);
+  calcSellAmount();
+}
+
 async function confirmSell() {
   const units  = parseFloat(document.getElementById('sellUnits').value) || 0;
   const f      = (window.allFunds || []).find(x => x.id === window.currentFundId);
   const errEl  = document.getElementById('sellError');
   errEl.style.display = 'none';
+  
   if (!f || units <= 0) {
     errEl.textContent = 'Masukkan jumlah unit yang valid.';
     errEl.style.display = 'block'; return;
@@ -207,7 +252,7 @@ async function confirmSell() {
   const h     = holdingArr?.[0] || null;
   const owned = h ? parseFloat(h.units) : 0;
 
-  if (units > owned) {
+  if (units > owned + 0.00001) { // Slight tolerance for floating point
     errEl.textContent = 'Unit tidak cukup. Anda hanya punya ' + owned.toFixed(4) + ' unit.';
     errEl.style.display = 'block'; return;
   }
@@ -216,10 +261,11 @@ async function confirmSell() {
   btn.textContent = 'Memproses...'; btn.disabled = true;
 
   const nav        = getCurrentNav(f.id);
-  const proceeds   = units * nav;
-  const ratio      = units / owned;
+  const sellUnits  = Math.min(units, owned); // Clamp to owned
+  const proceeds   = sellUnits * nav;
+  const ratio      = owned > 0 ? sellUnits / owned : 0;
   const modalSold  = parseFloat(h.invested) * ratio;
-  const newUnits   = owned - units;
+  const newUnits   = owned - sellUnits;
   const newInvest  = parseFloat(h.invested) - modalSold;
   const newBalance = (window.currentProfile.balance || 0) + proceeds;
 
@@ -239,18 +285,21 @@ async function confirmSell() {
     // 3. Catat transaksi
     await sb.from('transactions').insert({
       user_id: uid, type: 'jual', amount: proceeds,
-      fund_id: f.id, units, nav_price: nav,
-      note: 'Jual ' + f.name + ' (' + units.toFixed(4) + ' unit)',
+      fund_id: f.id, units: sellUnits, nav_price: nav,
+      note: 'Jual ' + f.name + ' (' + sellUnits.toFixed(4) + ' unit)',
       status: 'sukses',
     });
 
     window.currentProfile.balance = newBalance;
     cacheInvalidate('profile:');
     closeModal('modalSell');
-    toast('&#x1F4B8; Penjualan berhasil! Rp ' + fmtInt(proceeds) + ' masuk saldo.', 'success');
+    toast('💸 Penjualan berhasil! Rp ' + fmtInt(proceeds) + ' masuk saldo.', 'success');
     refreshBalanceUI(newBalance);
     await refreshHoldingsCache();
-    renderPortfolio();
+    
+    // Refresh views
+    if (_currentView === 'portfolio') { _currentView = null; renderPortfolio(); }
+    if (_currentView === 'dashboard') { _currentView = null; renderDashboard(); }
 
   } catch(e) {
     errEl.textContent = 'Transaksi gagal: ' + e.message;

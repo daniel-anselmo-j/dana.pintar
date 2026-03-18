@@ -314,3 +314,52 @@
   .auth-brand p { display: none; }
   .auth-card { padding: 20px; }
 }
+
+/* ──────────────────────────────────────────
+   PORTFOLIO MOBILE IMPROVEMENTS
+─────────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Portfolio item tombol Beli/Jual lebih touch-friendly */
+  .pi-value .btn-sm,
+  .pi-value .btn-danger {
+    padding: 7px 10px;
+    font-size: 11px;
+  }
+
+  /* Saldo amount lebih kecil di mobile */
+  .saldo-amount {
+    font-size: 28px;
+  }
+
+  /* Admin table scroll lebih smooth */
+  .table-wrap {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Card header wrap di mobile */
+  .card-header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .filter-tabs {
+    width: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 4px;
+  }
+  .filter-tab {
+    flex-shrink: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Grid 3 stat card di portfolio → 1 kolom */
+  .grid-3 { grid-template-columns: 1fr; }
+
+  /* Ticker item lebih compact */
+  .tick-item { padding: 4px 10px; }
+  .tick-icon { display: none; }
+
+  /* Sell max button */
+  .sell-max-btn { font-size: 11px; padding: 7px; }
+}

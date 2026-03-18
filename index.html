@@ -9,6 +9,11 @@
   <link rel="icon" type="image/png" href="assets/logo.png">
   <link rel="icon" type="image/png" href="assets/favicon.png">
   <link rel="apple-touch-icon" href="assets/logo.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta property="og:title" content="Dana Pintar — Platform Reksadana Digital">
+  <meta property="og:description" content="Investasi reksadana mudah, aman, dan menguntungkan bersama Dana Pintar.">
+  <meta name="color-scheme" content="dark">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -72,6 +77,7 @@
         <input type="number" id="sellUnits" placeholder="0" min="0" step="0.0001" oninput="calcSellAmount()">
         <span class="input-suffix">unit</span>
       </div>
+      <button type="button" class="sell-max-btn" onclick="setSellMax()">Jual Semua Unit</button>
       <div class="lot-display"><span class="ld-label">Unit Dimiliki</span><span class="ld-val" id="sellOwnedUnits">0.0000 unit</span></div>
       <div class="lot-display"><span class="ld-label">Estimasi Diterima</span><span class="ld-val" id="sellEstimate">Rp 0</span></div>
       <div id="sellError" class="error-msg"></div>
@@ -241,18 +247,18 @@
   </div>
 </div>
 
-<script src="js/supabase.js?v=1773400867"></script>
-<script src="js/data.js?v=1773400867"></script>
-<script src="js/ui.js?v=1773400867"></script>
-<script src="js/auth.js?v=1773400867"></script>
-<script src="js/charts.js?v=1773400867"></script>
-<script src="js/portfolio.js?v=1773400867"></script>
-<script src="js/products.js?v=1773400867"></script>
-<script src="js/transactions.js?v=1773400867"></script>
-<script src="js/dashboard.js?v=1773400867"></script>
-<script src="js/ticker.js?v=1773400867"></script>
-<script src="js/admin.js?v=1773400867"></script>
-<script src="js/app.js?v=1773400867"></script>
+<script src="js/supabase.js?v=1773798816"></script>
+<script src="js/data.js?v=1773798816"></script>
+<script src="js/ui.js?v=1773798816"></script>
+<script src="js/auth.js?v=1773798816"></script>
+<script src="js/charts.js?v=1773798816"></script>
+<script src="js/portfolio.js?v=1773798816"></script>
+<script src="js/products.js?v=1773798816"></script>
+<script src="js/transactions.js?v=1773798816"></script>
+<script src="js/dashboard.js?v=1773798816"></script>
+<script src="js/ticker.js?v=1773798816"></script>
+<script src="js/admin.js?v=1773798816"></script>
+<script src="js/app.js?v=1773798816"></script>
 <script>
 /* Mobile sidebar toggle */
 function toggleMobileSidebar() {

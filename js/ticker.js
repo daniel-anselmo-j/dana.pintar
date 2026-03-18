@@ -12,8 +12,13 @@ function buildTickerHTML(funds) {
     const chg  = base > 0 ? ((nav - base) / base * 100) : 0;
     const cls  = chg >= 0 ? 'tick-up' : 'tick-down';
     const sign = chg >= 0 ? '+' : '';
+    // Tampilkan nama pendek (maks 12 char) bukan ID
+    const shortName = (f.name || f.id).length > 14 
+      ? (f.name || f.id).substring(0, 13) + '…' 
+      : (f.name || f.id);
     return `<span class="tick-item">
-      <span class="tick-name">${f.id}</span>
+      <span class="tick-icon">${f.icon || '📊'}</span>
+      <span class="tick-name">${shortName}</span>
       <span class="tick-val">Rp ${fmt(nav)}</span>
       <span class="${cls}">${sign}${chg.toFixed(2)}%</span>
     </span>`;

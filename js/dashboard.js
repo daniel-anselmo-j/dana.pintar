@@ -11,16 +11,16 @@ async function renderDashboard() {
   const profile = window.currentProfile;
   if (!uid) return;
 
-  // Greeting
+  // Greeting berdasarkan waktu
   const hour  = new Date().getHours();
-  const greet = hour < 12 ? 'Selamat Pagi' : hour < 17 ? 'Selamat Siang' : 'Selamat Malam';
-  document.getElementById('dashGreet').textContent =
-    greet + ', ' + (profile?.full_name || 'Pengguna').split(' ')[0] + '!';
+  const greet = hour < 5 ? 'Selamat Malam' : hour < 12 ? 'Selamat Pagi' : hour < 15 ? 'Selamat Siang' : hour < 18 ? 'Selamat Sore' : 'Selamat Malam';
+  const firstName = (profile?.full_name || 'Pengguna').split(' ')[0];
+  const greetEl = document.getElementById('dashGreet');
+  if (greetEl) greetEl.textContent = greet + ', ' + firstName + '!';
 
-  // Load holdings dari cache (sudah di-load saat enterApp)
   const holdings = window._holdingsCache || [];
 
-  // Load recent transactions (query simpel, tanpa join ke funds)
+  // Fetch 5 transaksi terakhir
   let txs = [];
   try {
     const { data } = await sb
@@ -29,7 +29,6 @@ async function renderDashboard() {
       .eq('user_id', uid)
       .order('created_at', { ascending: false })
       .limit(5);
-    // Gabungkan fund name dari allFunds cache
     txs = (data || []).map(tx => ({
       ...tx,
       funds: window.allFunds.find(f => f.id === tx.fund_id) || null,
@@ -46,16 +45,16 @@ async function renderDashboard() {
       ${statCard('Total Portofolio',
         '<span id="dash-porto-total">Rp ' + fmtInt(total) + '</span>',
         (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%',
-        pct >= 0 ? 'up' : 'down', '&#x1F4B0;')}
+        pct >= 0 ? 'up' : 'down', '💰')}
       ${statCard('Total Keuntungan',
         '<span id="dash-profit">' + (profit >= 0 ? '+' : '') + 'Rp ' + fmtInt(Math.abs(profit)) + '</span>',
         (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%',
-        pct >= 0 ? 'up' : 'down', '&#x1F4C8;')}
+        pct >= 0 ? 'up' : 'down', '📈')}
       ${statCard('Saldo Tersedia',
         'Rp ' + fmtInt(profile?.balance ?? 0),
-        'Siap investasi', 'neutral', '&#x1F4B3;')}
+        'Siap investasi', 'neutral', '💳')}
       ${statCard('Produk Dimiliki',
-        count + '', 'Reksadana', 'neutral', '&#x1F3E6;')}
+        count + '', count === 0 ? 'Belum ada' : count === 1 ? '1 Reksadana' : count + ' Reksadana', 'neutral', '🏦')}
     </div>
 
     <div class="grid-2 mb-24">
@@ -91,8 +90,7 @@ async function renderDashboard() {
       </div>
     </div>`;
 
-  // Tunggu DOM benar-benar terpaint sebelum init chart
-  // (el.innerHTML baru saja diset, canvas belum punya ukuran)
+  // Init charts setelah DOM siap
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       renderDashLineChart(total, profile?.balance ?? 0);
@@ -100,7 +98,7 @@ async function renderDashboard() {
     });
   });
 
-  // Top funds
+  // Top funds — sorted by return
   const topFunds = (window.allFunds || [])
     .sort((a, b) => b.return_1y - a.return_1y).slice(0, 5);
   const tfEl = document.getElementById('dashTopFunds');
@@ -110,7 +108,7 @@ async function renderDashboard() {
         <div class="pi-icon">${f.icon}</div>
         <div class="pi-info">
           <div class="pi-name">${f.name}</div>
-          <div class="pi-sub">${f.manager} &#xB7; ${f.risk_level}</div>
+          <div class="pi-sub">${f.manager} · <span class="tag tag-neutral" style="font-size:10px;">${TYPE_LABEL[f.type]}</span></div>
         </div>
         <div class="pi-value">
           <div class="pi-amount">Rp ${fmt(getCurrentNav(f.id))}</div>
@@ -125,6 +123,6 @@ async function renderDashboard() {
   if (rtEl) {
     rtEl.innerHTML = txs.length
       ? txs.map(tx => txItemHTML(tx)).join('')
-      : '<div class="empty-state" style="padding:24px;"><div class="empty-icon">&#x1F4CB;</div><p>Belum ada transaksi.</p></div>';
+      : '<div class="empty-state" style="padding:24px;"><div class="empty-icon">📋</div><p>Belum ada transaksi. Yuk mulai investasi!</p></div>';
   }
 }

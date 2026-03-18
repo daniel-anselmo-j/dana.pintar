@@ -10,7 +10,6 @@ async function renderPortfolio() {
   const uid = window.currentUser?.id;
   if (!uid) return;
 
-  // Query holdings — join ke funds secara terpisah untuk hindari 500
   const holdings = await fetchHoldingsSafe(uid);
   window._holdingsCache = holdings;
 
@@ -19,47 +18,48 @@ async function renderPortfolio() {
   el.innerHTML = `
     <div class="grid-3 mb-24 stagger">
       ${statCard('Nilai Saat Ini',       'Rp ' + fmtInt(total),
-        (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%', pct >= 0 ? 'up' : 'down', '&#x1F4B0;')}
+        (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%', pct >= 0 ? 'up' : 'down', '💰')}
       ${statCard('Modal Diinvestasikan', 'Rp ' + fmtInt(modal),
-        'Total pembelian', 'neutral', '&#x1F4E5;')}
+        'Total pembelian', 'neutral', '📥')}
       ${statCard('Keuntungan / Rugi',
         (profit >= 0 ? '+' : '') + 'Rp ' + fmtInt(Math.abs(profit)),
         (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%',
-        pct >= 0 ? 'up' : 'down', profit >= 0 ? '&#x1F4C8;' : '&#x1F4C9;')}
+        pct >= 0 ? 'up' : 'down', profit >= 0 ? '📈' : '📉')}
     </div>
     <div class="card">
-      <div class="card-title">Rincian Kepemilikan</div>
-      <div id="holdingsList"></div>
+      <div class="card-header">
+        <div class="card-title" style="margin-bottom:0;">Rincian Kepemilikan</div>
+        ${holdings.length ? `<span class="tag tag-neutral">${holdings.length} produk</span>` : ''}
+      </div>
+      <div id="holdingsList" style="margin-top:4px;"></div>
     </div>`;
 
   const listEl = document.getElementById('holdingsList');
+  if (!listEl) return;
+
   if (!holdings.length) {
-    listEl.innerHTML = '<div class="empty-state"><div class="empty-icon">&#x1F4ED;</div><p>Belum ada investasi. Mulai dari menu Produk Investasi!</p></div>';
+    listEl.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">📭</div>
+        <p>Belum ada investasi aktif.</p>
+        <p class="text-sm text-muted mt-8">Mulai dari menu <strong style="color:var(--gold2)">Produk Investasi</strong> di sidebar.</p>
+        <button class="btn-sm" style="margin-top:16px;" onclick="switchView('pasar-uang')">Jelajahi Produk</button>
+      </div>`;
     return;
   }
   listEl.innerHTML = holdings.map(h => holdingItemHTML(h)).join('');
 }
 
-/**
- * Fetch holdings dengan cara aman:
- * Query holdings dulu, lalu gabungkan data fund dari window.allFunds (sudah di-cache)
- * Menghindari join PostgREST yang bisa error jika RLS tidak match.
- */
 async function fetchHoldingsSafe(uid) {
   try {
-    // Cara 1: coba join langsung (PostgREST foreign key join)
     const { data, error } = await sb
       .from('holdings')
       .select('id, user_id, fund_id, units, invested, updated_at')
       .eq('user_id', uid)
       .gt('units', 0);
 
-    if (error) {
-      console.error('Holdings fetch error:', error);
-      return [];
-    }
+    if (error) { console.error('Holdings fetch error:', error); return []; }
 
-    // Gabungkan dengan fund data dari cache (window.allFunds)
     return (data || []).map(h => ({
       ...h,
       funds: window.allFunds.find(f => f.id === h.fund_id) || null,
@@ -94,7 +94,7 @@ function holdingItemHTML(h) {
       <div class="pi-sub flex flex-center gap-8 mt-4">
         <span class="tag ${typeCls}">${TYPE_LABEL[f.type] || f.type}</span>
         <span>${f.manager}</span>
-        <span>&#xB7; ${parseFloat(h.units).toFixed(4)} unit</span>
+        <span>· ${parseFloat(h.units).toFixed(4)} unit</span>
       </div>
       <div class="text-xs text-dim mt-4">Modal: Rp ${fmtInt(h.invested)}</div>
     </div>
@@ -121,9 +121,6 @@ function calcPortfolioStats(holdings) {
   return { total, modal, profit, pct };
 }
 
-/**
- * Update DOM portfolio values dari _holdingsCache — ZERO fetch.
- */
 function refreshLivePortfolioDOM() {
   (window._holdingsCache || []).forEach(h => {
     const fid  = h.fund_id || h.funds?.id;

@@ -8,9 +8,9 @@ const NAV_CACHE = {};
 
 // Volatility per type
 const TYPE_VOL = {
-  'pasar-uang': 0.0015,
-  'obligasi':   0.003,
-  'saham':      0.007,
+  'pasar-uang': 0.0012,
+  'obligasi':   0.0025,
+  'saham':      0.006,
 };
 
 const RISK_COLOR = {
@@ -27,15 +27,11 @@ const TYPE_LABEL = {
   'saham':      'Saham',
 };
 
-/**
- * Cache holdings di memory supaya tidak perlu fetch Supabase tiap tick.
- * Di-refresh hanya setelah transaksi (beli/jual).
- */
+// Holdings cache — direfresh setelah transaksi saja
 window._holdingsCache = [];
 
 async function refreshHoldingsCache() {
   if (!window.currentUser) return;
-  // Tanpa join — gabungkan fund data dari window.allFunds (sudah di-cache)
   const { data } = await sb
     .from('holdings')
     .select('id, user_id, fund_id, units, invested, updated_at')
@@ -48,32 +44,34 @@ async function refreshHoldingsCache() {
   }));
 }
 
-/**
- * Start live NAV simulation — PURE client-side, ZERO Supabase requests.
- * Semua update dilakukan di memory dan DOM saja.
- */
+// ── NAV Simulation — PURE client-side, ZERO Supabase requests ──
+let _simInterval = null;
+
 function startNavSimulation(funds) {
+  // Clear any existing simulation
+  if (_simInterval) clearInterval(_simInterval);
+
   funds.forEach(f => {
     if (!NAV_CACHE[f.id]) {
       NAV_CACHE[f.id] = { nav: parseFloat(f.nav), base: parseFloat(f.base_nav), mult: 1 };
     }
   });
 
-  // Tick setiap 3 detik — hanya DOM update, NO fetch
-  setInterval(() => {
+  _simInterval = setInterval(() => {
     funds.forEach(f => {
       const entry = NAV_CACHE[f.id];
       if (!entry) return;
       const vol   = TYPE_VOL[f.type] || 0.003;
-      const delta = (Math.random() - 0.48) * vol;
-      entry.mult  = Math.max(0.7, Math.min(1.8, entry.mult + delta));
+      // Slight upward bias (0.48 → 0.47) for realistic market sim
+      const delta = (Math.random() - 0.47) * vol;
+      entry.mult  = Math.max(0.75, Math.min(1.75, entry.mult + delta));
       entry.nav   = Math.round(entry.base * entry.mult * 10000) / 10000;
 
-      // Update kartu produk (jika visible)
-      const el = document.getElementById('nav-display-' + f.id);
-      if (el) el.textContent = 'Rp ' + fmt(entry.nav);
+      // Update product card NAV display (if visible)
+      const navEl = document.getElementById('nav-display-' + f.id);
+      if (navEl) navEl.textContent = 'Rp ' + fmt(entry.nav);
 
-      // Update modal jika sedang terbuka untuk fund ini
+      // Update open modal if for this fund
       if (window.currentFundId === f.id) {
         const buyNav  = document.getElementById('modalBuyNav');
         const sellNav = document.getElementById('modalSellNav');
@@ -84,10 +82,9 @@ function startNavSimulation(funds) {
       }
     });
 
-    // Update ticker (DOM only)
+    // Update ticker
     buildTickerHTML(funds);
-
-    // Refresh portfolio DOM dari cache memory (NO fetch)
+    // Refresh portfolio live values
     refreshLivePortfolioDOM();
   }, 3000);
 }
@@ -117,5 +114,5 @@ function fmtAUM(n) {
 function fmtDate(ts) {
   const d = new Date(ts);
   return d.toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' })
-    + ' ' + d.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
+    + ' · ' + d.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
 }

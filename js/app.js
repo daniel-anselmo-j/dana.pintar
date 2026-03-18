@@ -10,17 +10,11 @@ window._allTxs        = [];
 
 // ── Bootstrap ────────────────────────────────────────────
 (async function init() {
-  // SDK sudah dimuat via <script> di index.html
-  // createClient langsung tanpa dynamic import
   sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
     auth: { persistSession: true, autoRefreshToken: true },
-    global: {
-      // Tambah retry logic bawaan
-      fetch: (...args) => fetch(...args),
-    }
   });
 
-  // Check existing session (1 request saat load)
+  // Check existing session
   const { data: { session } } = await sb.auth.getSession();
   if (session?.user) {
     await enterApp(session.user);
@@ -32,6 +26,10 @@ window._allTxs        = [];
       window.currentUser    = null;
       window.currentProfile = null;
     }
+    // Handle SIGNED_IN only if we don't have a current user (e.g. email confirm redirect)
+    if (event === 'SIGNED_IN' && session?.user && !window.currentUser) {
+      await enterApp(session.user);
+    }
   });
 })();
 
@@ -39,40 +37,40 @@ window._allTxs        = [];
 async function enterApp(user) {
   window.currentUser = user;
 
-  // Fetch profile + funds in parallel (2 requests total, cached)
+  // Fetch profile + funds in parallel
   const [profileRes, fundsRes] = await Promise.all([
     sb.from('profiles').select('*').eq('id', user.id).single(),
     sb.from('funds').select('*').eq('is_active', true).order('type'),
   ]);
 
-  // Handle profile
+  // Handle profile with retry
   if (profileRes.error || !profileRes.data) {
-    await new Promise(r => setTimeout(r, 1000));
+    await new Promise(r => setTimeout(r, 1200));
     const { data: p2 } = await sb.from('profiles').select('*').eq('id', user.id).single();
     window.currentProfile = p2 || { balance: 0, full_name: user.email, role: 'investor' };
   } else {
     window.currentProfile = profileRes.data;
   }
 
-  // Cache profile
   cacheSet('profile:' + user.id, window.currentProfile, 60000);
 
   // Handle funds
   window.allFunds = fundsRes.data || [];
-  cacheSet('funds:all', window.allFunds, 300000); // cache 5 menit
+  cacheSet('funds:all', window.allFunds, 300000);
 
   // Seed NAV cache
   window.allFunds.forEach(f => {
     NAV_CACHE[f.id] = { nav: parseFloat(f.nav), base: parseFloat(f.base_nav), mult: 1 };
   });
 
-  // Switch to app page
+  // Switch to app page with smooth transition
   document.getElementById('page-auth').classList.remove('active');
   document.getElementById('page-app').classList.add('active');
 
   updateSidebarUI(window.currentProfile);
   ['pasar-uang', 'obligasi', 'saham'].forEach(type => renderProducts(type));
-  // Pre-load holdings cache (1 request saat login)
+
+  // Pre-load holdings cache
   await refreshHoldingsCache();
   startNavSimulation(window.allFunds);
   buildTickerHTML(window.allFunds);
@@ -84,4 +82,18 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
   }
+});
+
+// ── Global error handler ──────────────────────────────────
+window.addEventListener('unhandledrejection', event => {
+  console.error('Unhandled promise rejection:', event.reason);
+  // Jangan tampilkan error ke user untuk promise non-kritis
+});
+
+// ── Online/offline detection ──────────────────────────────
+window.addEventListener('offline', () => {
+  toast('⚠️ Koneksi internet terputus', 'error');
+});
+window.addEventListener('online', () => {
+  toast('✅ Koneksi internet pulih', 'success');
 });

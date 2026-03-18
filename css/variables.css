@@ -4,17 +4,17 @@
 
 :root {
   /* Backgrounds */
-  --bg:        #080c18;
-  --bg2:       #0b1020;
-  --bg3:       #0f1628;
-  --card:      #121c32;
-  --card2:     #182340;
-  --card3:     #1e2b4d;
+  --bg:        #070b16;
+  --bg2:       #090e1c;
+  --bg3:       #0d1424;
+  --card:      #101828;
+  --card2:     #16203a;
+  --card3:     #1c2a4a;
 
   /* Borders */
-  --border:    #1c2b4a;
-  --border2:   #263a64;
-  --border3:   #304880;
+  --border:    #1a2840;
+  --border2:   #243858;
+  --border3:   #2e4878;
 
   /* Brand Gold */
   --gold:      #c9a84c;
@@ -25,29 +25,29 @@
   /* Semantic Colors */
   --green:     #2de0a5;
   --green2:    #1ab885;
-  --green-dim: rgba(45, 224, 165, 0.12);
+  --green-dim: rgba(45, 224, 165, 0.10);
   --red:       #ff6b8a;
   --red2:      #e03c5e;
-  --red-dim:   rgba(255, 107, 138, 0.12);
+  --red-dim:   rgba(255, 107, 138, 0.10);
   --blue:      #5aaeff;
-  --blue-dim:  rgba(90, 174, 255, 0.12);
+  --blue-dim:  rgba(90, 174, 255, 0.10);
   --purple:    #a594ff;
   --orange:    #ffaa55;
 
   /* Text */
-  --text:      #dce9ff;
-  --text2:     #7a90c0;
-  --text3:     #48587a;
-  --text4:     #2e3d5c;
+  --text:      #d8e6ff;
+  --text2:     #6a82b8;
+  --text3:     #3e5070;
+  --text4:     #263248;
 
   /* Shadows */
-  --shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.35);
-  --shadow:    0 12px 40px rgba(0, 0, 0, 0.5);
-  --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.65);
+  --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.4);
+  --shadow:    0 8px 32px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 20px 56px rgba(0, 0, 0, 0.7);
 
   /* Glows */
-  --glow-gold: 0 0 40px rgba(201, 168, 76, 0.14);
-  --glow-green: 0 0 24px rgba(45, 224, 165, 0.16);
+  --glow-gold:  0 0 40px rgba(201, 168, 76, 0.12);
+  --glow-green: 0 0 24px rgba(45, 224, 165, 0.14);
 
   /* Radius */
   --r-sm:  8px;

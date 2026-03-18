@@ -70,7 +70,13 @@
   white-space: nowrap;
 }
 .tick-item:hover { background: rgba(201,168,76,0.04); }
-.tick-name { color: var(--text2); font-weight: 500; flex-shrink: 0; }
+.tick-name { color: var(--text2); font-weight: 500; flex-shrink: 0; max-width: 110px; overflow: hidden; text-overflow: ellipsis; }
+
+.tick-icon {
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
 .tick-val  { color: var(--text); }
 .tick-up   { color: var(--green); }
 .tick-down { color: var(--red); }
