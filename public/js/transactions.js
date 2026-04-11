@@ -9,24 +9,15 @@ async function renderSaldo() {
   if (!el) return;
   showLoading('viewSaldo');
 
-  const uid     = window.currentUser?.id;
   const balance = window.currentProfile?.balance ?? 0;
-  if (!uid) return;
 
   let txs = [];
   try {
-    const { data, error } = await sb
-      .from('transactions')
-      .select('id, type, amount, fund_id, note, status, created_at')
-      .eq('user_id', uid)
-      .order('created_at', { ascending: false });
-
-    if (!error) {
-      txs = (data || []).map(tx => ({
-        ...tx,
-        funds: window.allFunds.find(f => f.id === tx.fund_id) || null,
-      }));
-    }
+    const raw = await transactionsApi.getAll();
+    txs = raw.map(tx => ({
+      ...tx,
+      funds: window.allFunds.find(f => f.id === tx.fund_id) || null,
+    }));
   } catch(e) {
     console.error('Transactions fetch error:', e);
   }
@@ -34,15 +25,12 @@ async function renderSaldo() {
   const topups = txs.filter(t => t.type === 'topup').reduce((a, t) => a + parseFloat(t.amount), 0);
   const buys   = txs.filter(t => t.type === 'beli' ).reduce((a, t) => a + parseFloat(t.amount), 0);
   const sells  = txs.filter(t => t.type === 'jual' ).reduce((a, t) => a + parseFloat(t.amount), 0);
-  const netFlow = topups - buys + sells;
 
   el.innerHTML = `
     <div class="grid-2 mb-24">
       <div class="card saldo-main-card">
         <div class="card-title" style="color:var(--gold);">💳 Saldo Aktif</div>
-        <div class="saldo-amount">
-          Rp ${fmtInt(balance)}
-        </div>
+        <div class="saldo-amount">Rp ${fmtInt(balance)}</div>
         <p class="text-muted text-sm mb-16">Siap diinvestasikan kapan saja</p>
         <button class="btn-sm" onclick="openModal('modalTopup')">+ Top Up Saldo</button>
       </div>
@@ -101,7 +89,7 @@ function filterTxView(type, btnEl) {
 
   const el = document.getElementById('txListContainer');
   if (!el) return;
-  
+
   if (!filtered.length) {
     el.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><p>Tidak ada transaksi di kategori ini.</p></div>';
     return;
@@ -117,7 +105,7 @@ function txItemHTML(tx) {
   const fundName = tx.funds?.name || (tx.fund_id
     ? (window.allFunds.find(f => f.id === tx.fund_id)?.name || '')
     : '');
-  const note = tx.note || labels[tx.type] + (fundName ? ' · ' + fundName : '');
+  const note   = tx.note || labels[tx.type] + (fundName ? ' · ' + fundName : '');
   const tagCls = tx.type === 'topup' ? 'tag-blue' : tx.type === 'beli' ? 'tag-red' : 'tag-green';
 
   return `

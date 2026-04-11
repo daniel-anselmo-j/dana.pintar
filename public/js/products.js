@@ -22,8 +22,8 @@ function renderProducts(type) {
 }
 
 function productCardHTML(f) {
-  const riskCls = RISK_COLOR[f.risk_level] || 'tag-gold';
-  const nav     = getCurrentNav(f.id);
+  const riskCls     = RISK_COLOR[f.risk_level] || 'tag-gold';
+  const nav         = getCurrentNav(f.id);
   const returnClass = parseFloat(f.return_1y) >= 0 ? 'text-green' : 'text-red';
   const returnSign  = parseFloat(f.return_1y) >= 0 ? '+' : '';
   return `
@@ -59,16 +59,12 @@ function productCardHTML(f) {
   </div>`;
 }
 
-// ── Fund Detail Modal ─────────────────────────────────────
 function openFundDetail(fundId) {
-  const f = (window.allFunds || []).find(x => x.id === fundId);
+  const f   = (window.allFunds || []).find(x => x.id === fundId);
   if (!f) return;
-  const nav   = getCurrentNav(fundId);
-  const base  = parseFloat(f.base_nav);
-  const chg   = base > 0 ? ((nav - base) / base * 100) : 0;
-  const chgCls = chg >= 0 ? 'text-green' : 'text-red';
-
-  // Use existing buy modal as detail, or just show info toast
+  const nav = getCurrentNav(fundId);
+  const base = parseFloat(f.base_nav);
+  const chg  = base > 0 ? ((nav - base) / base * 100) : 0;
   toast(`📊 ${f.name} — NAV: Rp ${fmt(nav)} (${chg >= 0 ? '+' : ''}${chg.toFixed(2)}% dari base)`, 'success');
 }
 
@@ -97,16 +93,15 @@ function calcLots() {
   const nav   = getCurrentNav(window.currentFundId);
   const units = nav > 0 ? amt / nav : 0;
   document.getElementById('buyLots').textContent = units.toFixed(4) + ' unit';
-  
-  // Live validation hint
-  const f = (window.allFunds || []).find(x => x.id === window.currentFundId);
+
+  const f     = (window.allFunds || []).find(x => x.id === window.currentFundId);
   const errEl = document.getElementById('buyError');
-  const bal = window.currentProfile?.balance ?? 0;
+  const bal   = window.currentProfile?.balance ?? 0;
   if (amt > 0 && f && amt < parseFloat(f.min_buy)) {
-    errEl.textContent = `Minimal pembelian Rp ${fmtInt(f.min_buy)}`;
+    errEl.textContent   = `Minimal pembelian Rp ${fmtInt(f.min_buy)}`;
     errEl.style.display = 'block';
   } else if (amt > bal) {
-    errEl.textContent = 'Saldo tidak cukup. Silakan Top Up terlebih dahulu.';
+    errEl.textContent   = 'Saldo tidak cukup. Silakan Top Up terlebih dahulu.';
     errEl.style.display = 'block';
   } else {
     errEl.style.display = 'none';
@@ -132,57 +127,20 @@ async function confirmBuy() {
   const btn = document.querySelector('#modalBuy .btn-gold');
   btn.textContent = 'Memproses...'; btn.disabled = true;
 
-  const nav        = getCurrentNav(window.currentFundId);
-  const units      = amt / nav;
-  const uid        = window.currentUser.id;
-  const newBalance = (window.currentProfile.balance || 0) - amt;
+  const nav   = getCurrentNav(window.currentFundId);
+  const units = amt / nav;
 
   try {
-    // 1. Kurangi balance
-    const { error: balErr } = await sb.from('profiles')
-      .update({ balance: newBalance }).eq('id', uid);
-    if (balErr) throw new Error(balErr.message);
-
-    // 2. Upsert holding
-    const { data: existArr } = await sb.from('holdings')
-      .select('id, units, invested')
-      .eq('user_id', uid)
-      .eq('fund_id', f.id)
-      .limit(1);
-
-    const existing = existArr?.[0] || null;
-    if (existing) {
-      await sb.from('holdings').update({
-        units:    parseFloat(existing.units)    + units,
-        invested: parseFloat(existing.invested) + amt,
-      }).eq('id', existing.id);
-    } else {
-      await sb.from('holdings').insert({
-        user_id: uid, fund_id: f.id, units, invested: amt,
-      });
-    }
-
-    // 3. Catat transaksi
-    await sb.from('transactions').insert({
-      user_id: uid, type: 'beli', amount: amt,
-      fund_id: f.id, units, nav_price: nav,
-      note: 'Beli ' + f.name + ' (' + units.toFixed(4) + ' unit)',
-      status: 'sukses',
-    });
-
-    window.currentProfile.balance = newBalance;
-    cacheInvalidate('profile:');
+    const res = await transactionsApi.beli(f.id, amt, units, nav);
+    window.currentProfile.balance = res.balance;
     closeModal('modalBuy');
     toast('✅ Berhasil membeli ' + units.toFixed(4) + ' unit ' + f.name, 'success');
-    refreshBalanceUI(newBalance);
+    refreshBalanceUI(res.balance);
     await refreshHoldingsCache();
-
-    // Refresh current view if portfolio
     if (_currentView === 'portfolio') { _currentView = null; renderPortfolio(); }
     if (_currentView === 'dashboard') { _currentView = null; renderDashboard(); }
-
-  } catch(e) {
-    errEl.textContent = 'Transaksi gagal: ' + e.message;
+  } catch (e) {
+    errEl.textContent   = 'Transaksi gagal: ' + e.message;
     errEl.style.display = 'block';
   } finally {
     btn.textContent = 'Konfirmasi Pembelian'; btn.disabled = false;
@@ -192,18 +150,11 @@ async function confirmBuy() {
 // ── SELL ────────────────────────────────────────────────
 async function openSell(fundId) {
   window.currentFundId = fundId;
-  const f    = (window.allFunds || []).find(x => x.id === fundId);
+  const f   = (window.allFunds || []).find(x => x.id === fundId);
   if (!f) return;
-  const nav  = getCurrentNav(fundId);
-  const uid  = window.currentUser.id;
+  const nav = getCurrentNav(fundId);
 
-  const { data: holdingArr } = await sb.from('holdings')
-    .select('id, units, invested')
-    .eq('user_id', uid)
-    .eq('fund_id', fundId)
-    .limit(1);
-
-  const h     = holdingArr?.[0] || null;
+  const h     = (window._holdingsCache || []).find(x => x.fund_id === fundId);
   const owned = h ? parseFloat(h.units) : 0;
 
   document.getElementById('modalSellType').textContent  = TYPE_LABEL[f.type] || f.type;
@@ -224,7 +175,6 @@ function calcSellAmount() {
   document.getElementById('sellEstimate').textContent = 'Rp ' + fmtInt(units * nav);
 }
 
-// "Jual Semua" helper
 function setSellMax() {
   const owned = parseFloat(document.getElementById('sellOwnedUnits').textContent) || 0;
   document.getElementById('sellUnits').value = owned.toFixed(4);
@@ -236,23 +186,16 @@ async function confirmSell() {
   const f      = (window.allFunds || []).find(x => x.id === window.currentFundId);
   const errEl  = document.getElementById('sellError');
   errEl.style.display = 'none';
-  
+
   if (!f || units <= 0) {
     errEl.textContent = 'Masukkan jumlah unit yang valid.';
     errEl.style.display = 'block'; return;
   }
 
-  const uid = window.currentUser.id;
-  const { data: holdingArr } = await sb.from('holdings')
-    .select('id, units, invested')
-    .eq('user_id', uid)
-    .eq('fund_id', f.id)
-    .limit(1);
-
-  const h     = holdingArr?.[0] || null;
+  const h     = (window._holdingsCache || []).find(x => x.fund_id === f.id);
   const owned = h ? parseFloat(h.units) : 0;
 
-  if (units > owned + 0.00001) { // Slight tolerance for floating point
+  if (units > owned + 0.00001) {
     errEl.textContent = 'Unit tidak cukup. Anda hanya punya ' + owned.toFixed(4) + ' unit.';
     errEl.style.display = 'block'; return;
   }
@@ -260,49 +203,19 @@ async function confirmSell() {
   const btn = document.querySelector('#modalSell .btn-gold');
   btn.textContent = 'Memproses...'; btn.disabled = true;
 
-  const nav        = getCurrentNav(f.id);
-  const sellUnits  = Math.min(units, owned); // Clamp to owned
-  const proceeds   = sellUnits * nav;
-  const ratio      = owned > 0 ? sellUnits / owned : 0;
-  const modalSold  = parseFloat(h.invested) * ratio;
-  const newUnits   = owned - sellUnits;
-  const newInvest  = parseFloat(h.invested) - modalSold;
-  const newBalance = (window.currentProfile.balance || 0) + proceeds;
+  const nav = getCurrentNav(f.id);
 
   try {
-    // 1. Update atau hapus holding
-    if (newUnits < 0.0001) {
-      await sb.from('holdings').delete().eq('id', h.id);
-    } else {
-      await sb.from('holdings').update({
-        units: newUnits, invested: Math.max(0, newInvest),
-      }).eq('id', h.id);
-    }
-
-    // 2. Update balance
-    await sb.from('profiles').update({ balance: newBalance }).eq('id', uid);
-
-    // 3. Catat transaksi
-    await sb.from('transactions').insert({
-      user_id: uid, type: 'jual', amount: proceeds,
-      fund_id: f.id, units: sellUnits, nav_price: nav,
-      note: 'Jual ' + f.name + ' (' + sellUnits.toFixed(4) + ' unit)',
-      status: 'sukses',
-    });
-
-    window.currentProfile.balance = newBalance;
-    cacheInvalidate('profile:');
+    const res = await transactionsApi.jual(f.id, Math.min(units, owned), nav);
+    window.currentProfile.balance = res.balance;
     closeModal('modalSell');
-    toast('💸 Penjualan berhasil! Rp ' + fmtInt(proceeds) + ' masuk saldo.', 'success');
-    refreshBalanceUI(newBalance);
+    toast('💸 Penjualan berhasil! Rp ' + fmtInt(units * nav) + ' masuk saldo.', 'success');
+    refreshBalanceUI(res.balance);
     await refreshHoldingsCache();
-    
-    // Refresh views
     if (_currentView === 'portfolio') { _currentView = null; renderPortfolio(); }
     if (_currentView === 'dashboard') { _currentView = null; renderDashboard(); }
-
-  } catch(e) {
-    errEl.textContent = 'Transaksi gagal: ' + e.message;
+  } catch (e) {
+    errEl.textContent   = 'Transaksi gagal: ' + e.message;
     errEl.style.display = 'block';
   } finally {
     btn.textContent = 'Konfirmasi Penjualan'; btn.disabled = false;
