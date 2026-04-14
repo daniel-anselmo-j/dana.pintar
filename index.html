@@ -7,10 +7,17 @@
   <meta name="description" content="Investasi reksadana mudah, aman, dan menguntungkan bersama Dana Pintar.">
   <meta name="theme-color" content="#080c18">
   <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="icon" type="image/png" href="assets/favicon.png">
+  <link rel="apple-touch-icon" href="assets/logo.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta property="og:title" content="Dana Pintar — Platform Reksadana Digital">
+  <meta property="og:description" content="Investasi reksadana mudah, aman, dan menguntungkan bersama Dana Pintar.">
   <meta name="color-scheme" content="dark">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
   <link rel="stylesheet" href="css/variables.css">
   <link rel="stylesheet" href="css/base.css">
@@ -128,48 +135,24 @@
         <button class="auth-tab active" onclick="switchAuthTab('login')">Masuk</button>
         <button class="auth-tab" onclick="switchAuthTab('register')">Daftar</button>
       </div>
-
-      <!-- LOGIN FORM -->
       <div class="auth-form active" id="form-login">
-        <div class="error-msg"   id="loginError"></div>
+        <div class="error-msg" id="loginError"></div>
         <div class="success-msg" id="loginSuccess"></div>
-        <div class="form-group">
-          <label>Username</label>
-          <input type="text" id="loginUsername" placeholder="username_anda"
-            autocomplete="username"
-            onkeydown="if(event.key==='Enter')doLogin()">
-        </div>
-        <div class="form-group">
-          <label>Password</label>
-          <input type="password" id="loginPass" placeholder="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;"
-            autocomplete="current-password"
-            onkeydown="if(event.key==='Enter')doLogin()">
-        </div>
+        <div class="form-group"><label>Username</label><input type="text" id="loginUsername" placeholder="contoh: budi123" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()"></div>
+        <div class="form-group"><label>Password</label><input type="password" id="loginPass" placeholder="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
         <button class="btn-gold" onclick="doLogin()">Masuk ke Akun</button>
         <div class="demo-hint">Belum punya akun? Klik <strong>Daftar</strong> di atas.</div>
       </div>
-
-      <!-- REGISTER FORM -->
       <div class="auth-form" id="form-register">
-        <div class="error-msg"   id="regError"></div>
+        <div class="error-msg" id="regError"></div>
         <div class="success-msg" id="regSuccess"></div>
         <div class="form-row">
           <div class="form-group"><label>Nama Depan</label><input type="text" id="regFirst" placeholder="Budi"></div>
           <div class="form-group"><label>Nama Belakang</label><input type="text" id="regLast" placeholder="Santoso"></div>
         </div>
-        <div class="form-group">
-          <label>Username</label>
-          <input type="text" id="regUsername" placeholder="budi_santoso"
-            autocomplete="username"
-            oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9_]/g,'')">
-          <span class="input-hint">Huruf kecil, angka, underscore. Min 3 karakter.</span>
-        </div>
-        <div class="form-group"><label>No. HP <span style="color:var(--text3);font-weight:400;">(opsional)</span></label><input type="text" id="regPhone" placeholder="08xx-xxxx-xxxx"></div>
-        <div class="form-group">
-          <label>Password</label>
-          <input type="password" id="regPass" placeholder="Minimal 6 karakter"
-            autocomplete="new-password">
-        </div>
+        <div class="form-group"><label>Username</label><input type="text" id="regUsername" placeholder="contoh: budi123 (huruf, angka, titik, underscore)" autocomplete="username"></div>
+        <div class="form-group"><label>No. HP</label><input type="text" id="regPhone" placeholder="08xx-xxxx-xxxx"></div>
+        <div class="form-group"><label>Password</label><input type="password" id="regPass" placeholder="Minimal 6 karakter" autocomplete="new-password"></div>
         <button class="btn-gold" onclick="doRegister()">Buat Akun Gratis</button>
       </div>
     </div>
@@ -178,9 +161,11 @@
 
 <!-- APP PAGE -->
 <div id="page-app" class="page">
+  <!-- Mobile hamburger -->
   <button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleMobileSidebar()" aria-label="Toggle menu">
     <span></span><span></span><span></span>
   </button>
+  <!-- Sidebar overlay -->
   <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeMobileSidebar()"></div>
   <div class="app-layout">
     <aside class="sidebar">
@@ -192,11 +177,7 @@
       </div>
       <div class="sidebar-user">
         <div class="su-avatar" id="sidebarAvatar">U</div>
-        <div class="su-info">
-          <div class="su-name" id="sidebarName">Memuat...</div>
-          <div class="su-role" id="sidebarUsername" style="font-size:11px;color:var(--text3);"></div>
-          <div class="su-role" id="sidebarRole">Investor</div>
-        </div>
+        <div class="su-info"><div class="su-name" id="sidebarName">Memuat...</div><div class="su-role" id="sidebarRole">Investor</div></div>
       </div>
       <div class="sidebar-balance">
         <div class="sb-label">Saldo Tersedia</div>
@@ -213,8 +194,8 @@
         <div class="nav-section">
           <div class="nav-label">Produk Investasi</div>
           <button class="nav-item" data-view="pasar-uang" onclick="switchView('pasar-uang')"><span class="nav-icon">&#x1F4A7;</span><span>Pasar Uang</span></button>
-          <button class="nav-item" data-view="obligasi"   onclick="switchView('obligasi')"><span class="nav-icon">&#x1F3DB;&#xFE0F;</span><span>Obligasi</span></button>
-          <button class="nav-item" data-view="saham"      onclick="switchView('saham')"><span class="nav-icon">&#x1F4CA;</span><span>Saham</span></button>
+          <button class="nav-item" data-view="obligasi" onclick="switchView('obligasi')"><span class="nav-icon">&#x1F3DB;&#xFE0F;</span><span>Obligasi</span></button>
+          <button class="nav-item" data-view="saham" onclick="switchView('saham')"><span class="nav-icon">&#x1F4CA;</span><span>Saham</span></button>
         </div>
         <div class="nav-section" id="navAdmin" style="display:none;">
           <div class="nav-label">Administrasi</div>
@@ -222,6 +203,7 @@
         </div>
       </nav>
       <div class="sidebar-footer">
+        <!-- Ticker inside sidebar -->
         <div class="ticker-bar">
           <span class="ticker-label">LIVE</span>
           <div class="ticker-scroll"><div class="ticker-track" id="tickerTrack"></div></div>
@@ -239,11 +221,11 @@
       </div>
       <div class="view" id="view-portfolio">
         <div class="topbar"><div><div class="topbar-bc">Dana Pintar / <span>Portofolio</span></div><div class="topbar-title">Portofolio Saya</div></div></div>
-        <div class="view-body" id="viewPortfolio"></div>
+        <div class="view-body" id="viewPortfolio"><div class="loading-wrap"><div class="spinner"></div><span>Memuat portofolio...</span></div></div>
       </div>
       <div class="view" id="view-saldo">
         <div class="topbar"><div><div class="topbar-bc">Dana Pintar / <span>Saldo</span></div><div class="topbar-title">Saldo &amp; Transaksi</div></div><div class="topbar-right"><button class="btn-sm" onclick="openModal('modalTopup')">+ Top Up</button></div></div>
-        <div class="view-body" id="viewSaldo"></div>
+        <div class="view-body" id="viewSaldo"><div class="loading-wrap"><div class="spinner"></div><span>Memuat transaksi...</span></div></div>
       </div>
       <div class="view" id="view-pasar-uang">
         <div class="topbar"><div><div class="topbar-bc">Dana Pintar / Produk / <span>Pasar Uang</span></div><div class="topbar-title">Reksadana Pasar Uang</div></div></div>
@@ -259,32 +241,31 @@
       </div>
       <div class="view" id="view-admin">
         <div class="topbar"><div><div class="topbar-bc">Dana Pintar / <span>Admin</span></div><div class="topbar-title">Panel Administrasi</div></div></div>
-        <div class="view-body" id="viewAdmin"></div>
+        <div class="view-body" id="viewAdmin"><div class="loading-wrap"><div class="spinner"></div><span>Memuat panel admin...</span></div></div>
       </div>
     </main>
   </div>
 </div>
 
-<!-- JS — urutan penting -->
-<script src="js/api.js"></script>
-<script src="js/data.js"></script>
-<script src="js/ui.js"></script>
-<script src="js/auth.js"></script>
-<script src="js/charts.js"></script>
-<script src="js/portfolio.js"></script>
-<script src="js/products.js"></script>
-<script src="js/transactions.js"></script>
-<script src="js/dashboard.js"></script>
-<script src="js/ticker.js"></script>
-<script src="js/admin.js"></script>
-<script src="js/app.js"></script>
+<script src="js/supabase.js?v=1773798816"></script>
+<script src="js/data.js?v=1773798816"></script>
+<script src="js/ui.js?v=1773798816"></script>
+<script src="js/auth.js?v=1773798816"></script>
+<script src="js/charts.js?v=1773798816"></script>
+<script src="js/portfolio.js?v=1773798816"></script>
+<script src="js/products.js?v=1773798816"></script>
+<script src="js/transactions.js?v=1773798816"></script>
+<script src="js/dashboard.js?v=1773798816"></script>
+<script src="js/ticker.js?v=1773798816"></script>
+<script src="js/admin.js?v=1773798816"></script>
+<script src="js/app.js?v=1773798816"></script>
 <script>
 /* Mobile sidebar toggle */
 function toggleMobileSidebar() {
   const sidebar = document.querySelector('.sidebar');
   const overlay = document.getElementById('sidebarOverlay');
-  const btn     = document.getElementById('mobileMenuBtn');
-  const isOpen  = sidebar.classList.toggle('open');
+  const btn = document.getElementById('mobileMenuBtn');
+  const isOpen = sidebar.classList.toggle('open');
   overlay.classList.toggle('open', isOpen);
   btn.classList.toggle('open', isOpen);
 }
@@ -293,6 +274,7 @@ function closeMobileSidebar() {
   document.getElementById('sidebarOverlay').classList.remove('open');
   document.getElementById('mobileMenuBtn').classList.remove('open');
 }
+/* Close sidebar when nav item is clicked on mobile */
 document.addEventListener('DOMContentLoaded', function() {
   document.querySelectorAll('.nav-item').forEach(function(item) {
     item.addEventListener('click', function() {

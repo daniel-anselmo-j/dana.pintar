@@ -7,8 +7,12 @@ async function renderPortfolio() {
   if (!el) return;
   showLoading('viewPortfolio');
 
-  await refreshHoldingsCache();
-  const holdings = window._holdingsCache;
+  const uid = window.currentUser?.id;
+  if (!uid) return;
+
+  const holdings = await fetchHoldingsSafe(uid);
+  window._holdingsCache = holdings;
+
   const { total, modal, profit, pct } = calcPortfolioStats(holdings);
 
   el.innerHTML = `
@@ -46,6 +50,32 @@ async function renderPortfolio() {
   listEl.innerHTML = holdings.map(h => holdingItemHTML(h)).join('');
 }
 
+async function fetchHoldingsSafe(uid) {
+  try {
+    const { data, error } = await sb
+      .from('holdings')
+      .select('id, user_id, fund_id, units, invested, updated_at')
+      .eq('user_id', uid)
+      .gt('units', 0);
+
+    if (error) { console.error('Holdings fetch error:', error); return []; }
+
+    return (data || []).map(h => ({
+      ...h,
+      funds: window.allFunds.find(f => f.id === h.fund_id) || null,
+    })).filter(h => h.funds !== null);
+
+  } catch (e) {
+    console.error('Holdings exception:', e);
+    return [];
+  }
+}
+
+async function refreshHoldingsCache() {
+  if (!window.currentUser?.id) return;
+  window._holdingsCache = await fetchHoldingsSafe(window.currentUser.id);
+}
+
 function holdingItemHTML(h) {
   const f    = h.funds; if (!f) return '';
   const nav  = getCurrentNav(f.id);
@@ -73,7 +103,7 @@ function holdingItemHTML(h) {
       <div class="pi-return ${pct >= 0 ? 'text-green' : 'text-red'}"
            id="pi-ret-${f.id}">${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%</div>
       <div style="display:flex;gap:6px;margin-top:8px;">
-        <button class="btn-sm"     onclick="openBuy('${f.id}')">+ Beli</button>
+        <button class="btn-sm"    onclick="openBuy('${f.id}')">+ Beli</button>
         <button class="btn-danger" onclick="openSell('${f.id}')">Jual</button>
       </div>
     </div>

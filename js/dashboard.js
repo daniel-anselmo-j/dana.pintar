@@ -7,21 +7,29 @@ async function renderDashboard() {
   if (!el) return;
   showLoading('viewDashboard');
 
-  const profile  = window.currentProfile;
-  if (!profile) return;
+  const uid     = window.currentUser?.id;
+  const profile = window.currentProfile;
+  if (!uid) return;
 
-  const hour   = new Date().getHours();
-  const greet  = hour < 5 ? 'Selamat Malam' : hour < 12 ? 'Selamat Pagi' : hour < 15 ? 'Selamat Siang' : hour < 18 ? 'Selamat Sore' : 'Selamat Malam';
+  // Greeting berdasarkan waktu
+  const hour  = new Date().getHours();
+  const greet = hour < 5 ? 'Selamat Malam' : hour < 12 ? 'Selamat Pagi' : hour < 15 ? 'Selamat Siang' : hour < 18 ? 'Selamat Sore' : 'Selamat Malam';
   const firstName = (profile?.full_name || 'Pengguna').split(' ')[0];
-  const greetEl   = document.getElementById('dashGreet');
+  const greetEl = document.getElementById('dashGreet');
   if (greetEl) greetEl.textContent = greet + ', ' + firstName + '!';
 
   const holdings = window._holdingsCache || [];
 
+  // Fetch 5 transaksi terakhir
   let txs = [];
   try {
-    const raw = await transactionsApi.getAll(5);
-    txs = raw.map(tx => ({
+    const { data } = await sb
+      .from('transactions')
+      .select('id, type, amount, fund_id, note, status, created_at')
+      .eq('user_id', uid)
+      .order('created_at', { ascending: false })
+      .limit(5);
+    txs = (data || []).map(tx => ({
       ...tx,
       funds: window.allFunds.find(f => f.id === tx.fund_id) || null,
     }));
@@ -82,6 +90,7 @@ async function renderDashboard() {
       </div>
     </div>`;
 
+  // Init charts setelah DOM siap
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       renderDashLineChart(total, profile?.balance ?? 0);
@@ -89,8 +98,10 @@ async function renderDashboard() {
     });
   });
 
-  const topFunds = (window.allFunds || []).sort((a, b) => b.return_1y - a.return_1y).slice(0, 5);
-  const tfEl     = document.getElementById('dashTopFunds');
+  // Top funds — sorted by return
+  const topFunds = (window.allFunds || [])
+    .sort((a, b) => b.return_1y - a.return_1y).slice(0, 5);
+  const tfEl = document.getElementById('dashTopFunds');
   if (tfEl) {
     tfEl.innerHTML = topFunds.length ? topFunds.map(f => `
       <div class="portfolio-item" style="cursor:pointer;" onclick="switchView('${f.type}')">
@@ -107,6 +118,7 @@ async function renderDashboard() {
     : '<div class="empty-state" style="padding:24px;"><p>Memuat produk...</p></div>';
   }
 
+  // Recent transactions
   const rtEl = document.getElementById('dashRecentTx');
   if (rtEl) {
     rtEl.innerHTML = txs.length

@@ -1,10 +1,12 @@
 // ═══════════════════════════════════════════════════════════
 //  js/data.js — Fund Data & NAV Live Simulation
-//  ZERO server requests di dalam loop simulasi
+//  ZERO Supabase requests di dalam loop simulasi
 // ═══════════════════════════════════════════════════════════
 
+// Runtime NAV cache
 const NAV_CACHE = {};
 
+// Volatility per type
 const TYPE_VOL = {
   'pasar-uang': 0.0012,
   'obligasi':   0.0025,
@@ -25,25 +27,28 @@ const TYPE_LABEL = {
   'saham':      'Saham',
 };
 
+// Holdings cache — direfresh setelah transaksi saja
 window._holdingsCache = [];
 
 async function refreshHoldingsCache() {
   if (!window.currentUser) return;
-  try {
-    const holdings = await holdingsApi.getAll();
-    window._holdingsCache = holdings.map(h => ({
-      ...h,
-      funds: window.allFunds.find(f => f.id === h.fund_id) || null,
-    }));
-  } catch (e) {
-    console.error('Holdings cache error:', e);
-  }
+  const { data } = await sb
+    .from('holdings')
+    .select('id, user_id, fund_id, units, invested, updated_at')
+    .eq('user_id', window.currentUser.id)
+    .gt('units', 0);
+
+  window._holdingsCache = (data || []).map(h => ({
+    ...h,
+    funds: window.allFunds.find(f => f.id === h.fund_id) || null,
+  }));
 }
 
-// ── NAV Simulation — PURE client-side ────────────────────
+// ── NAV Simulation — PURE client-side, ZERO Supabase requests ──
 let _simInterval = null;
 
 function startNavSimulation(funds) {
+  // Clear any existing simulation
   if (_simInterval) clearInterval(_simInterval);
 
   funds.forEach(f => {
@@ -57,13 +62,16 @@ function startNavSimulation(funds) {
       const entry = NAV_CACHE[f.id];
       if (!entry) return;
       const vol   = TYPE_VOL[f.type] || 0.003;
+      // Slight upward bias (0.48 → 0.47) for realistic market sim
       const delta = (Math.random() - 0.47) * vol;
       entry.mult  = Math.max(0.75, Math.min(1.75, entry.mult + delta));
       entry.nav   = Math.round(entry.base * entry.mult * 10000) / 10000;
 
+      // Update product card NAV display (if visible)
       const navEl = document.getElementById('nav-display-' + f.id);
       if (navEl) navEl.textContent = 'Rp ' + fmt(entry.nav);
 
+      // Update open modal if for this fund
       if (window.currentFundId === f.id) {
         const buyNav  = document.getElementById('modalBuyNav');
         const sellNav = document.getElementById('modalSellNav');
@@ -74,7 +82,9 @@ function startNavSimulation(funds) {
       }
     });
 
+    // Update ticker
     buildTickerHTML(funds);
+    // Refresh portfolio live values
     refreshLivePortfolioDOM();
   }, 3000);
 }
