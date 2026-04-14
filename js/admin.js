@@ -12,8 +12,12 @@ async function renderAdmin() {
     return;
   }
 
-  const [profilesRes, txsRes, holdingsRes] = await Promise.all([
-    sb.from('profiles').select('id, full_name, username, balance, role, is_active, created_at').neq('role', 'admin'),
+  const [profilesRes, allProfilesRes, txsRes, holdingsRes] = await Promise.all([
+    // Non-admin profiles untuk tabel manajemen (role != admin OR role is null)
+    sb.from('profiles').select('id, full_name, username, balance, role, is_active, created_at')
+      .or('role.neq.admin,role.is.null'),
+    // Semua profiles untuk mapping nama di tabel transaksi
+    sb.from('profiles').select('id, full_name, username, role'),
     sb.from('transactions').select('id, user_id, type, amount, fund_id, status, created_at').order('created_at', { ascending: false }).limit(100),
     sb.from('holdings').select('user_id, fund_id, units'),
   ]);
@@ -22,13 +26,18 @@ async function renderAdmin() {
   const txs      = txsRes.data      || [];
   const holdings = holdingsRes.data  || [];
 
+  // Fallback username dari user_metadata jika kolom kosong
+  profiles.forEach(p => {
+    if (!p.username) p.username = p.full_name?.toLowerCase().replace(/\s+/g, '') || '—';
+  });
+
   // Hitung AUM
   let totalAUM = 0;
   holdings.forEach(h => { totalAUM += parseFloat(h.units) * getCurrentNav(h.fund_id); });
 
-  // Map user_id ke profil
+  // Map user_id ke profil (semua profil termasuk admin untuk mapping nama di transaksi)
   const profileMap = {};
-  profiles.forEach(p => { profileMap[p.id] = p; });
+  (allProfilesRes.data || []).forEach(p => { profileMap[p.id] = p; });
 
   // Stats
   const activeUsers = profiles.filter(p => p.is_active).length;
@@ -148,7 +157,8 @@ function renderAdminTxTable(txs, profileMap) {
 
   tbody.innerHTML = txs.slice(0, 60).map(tx => {
     const pMap  = profileMap || window._profileMap || {};
-    const uName = pMap[tx.user_id]?.full_name || tx.user_id?.slice(0,8) + '...';
+    const prof  = pMap[tx.user_id];
+    const uName = prof?.full_name || prof?.username || (tx.user_id?.slice(0,8) + '...');
     const fund  = window.allFunds?.find(f => f.id === tx.fund_id);
     return `<tr>
       <td class="text-sm text-muted">${fmtDate(tx.created_at)}</td>
